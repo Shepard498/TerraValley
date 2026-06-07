@@ -24,30 +24,43 @@
 
 package com.terraforged.mod.mixin.client;
 
+import com.mojang.datafixers.util.Pair;
 import com.terraforged.mod.hooks.DatapackHook;
 import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
+import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
 import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.world.level.WorldDataConfiguration;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Desc;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
 @Mixin(CreateWorldScreen.class)
 public abstract class MixinCreateWorldScreen {
     @Shadow
-    protected abstract Path getTempDataPackDir();
+    public abstract WorldCreationUiState getUiState();
 
-    @Inject(target = @Desc(value = "init"), at = @At("RETURN"))
-    private void onInit(CallbackInfo ci) {
-        DatapackHook.selectPreset(this);
+    @Shadow
+    private Pair<Path, PackRepository> getDataPackSelectionSettings(WorldDataConfiguration config) {
+        throw new AssertionError();
     }
 
-    @Inject(target = @Desc(value = "tryApplyNewDataPacks", args = PackRepository.class), at = @At("HEAD"))
-    private void onTryApplyNewDataPacks(PackRepository repository, CallbackInfo ci) {
-        DatapackHook.injectDatapack(repository, getTempDataPackDir());
+    @Shadow
+    private void tryApplyNewDataPacks(PackRepository repository, boolean showExperimentalWarning, Consumer<WorldDataConfiguration> callback) {
+        throw new AssertionError();
+    }
+
+    @Inject(method = "init", at = @At("RETURN"))
+    private void onInit(CallbackInfo ci) {
+        var pair = getDataPackSelectionSettings(getUiState().getSettings().dataConfiguration());
+        if (DatapackHook.injectDatapack(pair.getSecond(), pair.getFirst())) {
+            tryApplyNewDataPacks(pair.getSecond(), false, config -> {});
+        }
+
+        DatapackHook.selectPreset(this);
     }
 }

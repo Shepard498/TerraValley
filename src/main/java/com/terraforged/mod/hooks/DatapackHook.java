@@ -24,67 +24,46 @@
 
 package com.terraforged.mod.hooks;
 
-import com.mojang.serialization.Lifecycle;
 import com.terraforged.mod.TerraForged;
-import com.terraforged.mod.util.ReflectionUtil;
-import com.terraforged.mod.worldgen.Generator;
 import com.terraforged.mod.worldgen.datapack.DataPackExporter;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
-import net.minecraft.client.gui.screens.worldselection.WorldCreationContext;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.repository.*;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.FolderRepositorySource;
+import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.world.level.validation.DirectoryValidator;
 import net.minecraft.world.level.levelgen.presets.WorldPreset;
 
-import java.lang.invoke.MethodHandle;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class DatapackHook {
     private static final String PACK_FILE_ID = "file/" + DataPackExporter.PACK_FILE_NAME;
+    private static final DirectoryValidator ALLOW_ALL_VALIDATOR = new DirectoryValidator(path -> true);
 
-    public static WorldCreationContext createContext(WorldCreationContext context) {
-        if (Generator.isTerraForged(context.worldGenSettings().overworld())) {
-            return new WorldCreationContext(context.worldGenSettings(), Lifecycle.stable(), context.registryAccess(), context.dataPackResources());
-        }
-        return context;
-    }
+    public static boolean injectDatapack(PackRepository repository, Path dir) {
+        var changed = false;
 
-    public static RepositorySource[] injectRepositorySource(RepositorySource[] sources) {
-        var copy = Arrays.copyOf(sources, sources.length + 1);
-        copy[sources.length] = new TerraForgedRepositorySource();
-        return copy;
-    }
-
-    public static void injectDatapack(PackRepository repository, Path dir) {
         if (!repository.isAvailable(PACK_FILE_ID)) {
-            // Copy default datapack to world's temp-dir
             DataPackExporter.createWorldDatapack(dir);
-
-            // Scan temp-dir and insert pack entry into repository
-            TerraForgedRepositorySource.inject(repository, dir);
+            repository.addPackFinder(new FolderRepositorySource(dir, PackType.SERVER_DATA, PackSource.WORLD, ALLOW_ALL_VALIDATOR));
+            repository.reload();
 
             TerraForged.LOG.info("Injected datapack {}", PACK_FILE_ID);
+            changed = true;
         }
 
-        var selected = repository.getSelectedIds();
-        if (!selected.contains(PACK_FILE_ID)) {
-            // Make mutable & add the TF datapack id
-            selected = new ArrayList<>(selected);
-            selected.add(PACK_FILE_ID);
-
-            // Update the repository with new selection
-            repository.setSelected(selected);
-
+        if (repository.addPack(PACK_FILE_ID)) {
             TerraForged.LOG.info("Selected datapack {}", PACK_FILE_ID);
+            changed = true;
         }
+
+        return changed;
     }
 
     public static void selectPreset(Object object) {
@@ -136,39 +115,8 @@ public class DatapackHook {
 
     private static boolean isPreset(CycleButton<?> button) {
         return button.getValue() instanceof Holder<?> holder && holder.unwrap().map(
-                key -> key.registry().equals(Registry.WORLD_PRESET_REGISTRY.location()),
+                key -> key.registry().equals(Registries.WORLD_PRESET.location()),
                 value -> value instanceof WorldPreset
         );
-    }
-
-    public static class TerraForgedRepositorySource implements RepositorySource {
-        private static final MethodHandle PACK_SOURCES = ReflectionUtil.field(PackRepository.class, Set.class);
-        private static final RepositorySource NOOP = (consumer, constructor) -> {};
-
-        protected RepositorySource source = NOOP;
-
-        public void setDir(Path path) {
-            source = new FolderRepositorySource(path.toFile(), PackSource.DEFAULT);
-        }
-
-        @Override
-        public void loadPacks(Consumer<Pack> pack, Pack.PackConstructor constructor) {
-            source.loadPacks(pack, constructor);
-        }
-
-        public static void inject(PackRepository repository, Path dir) {
-            try {
-                var set = (Set<?>) PACK_SOURCES.invokeExact(repository);
-
-                for (var object : set) {
-                    if (object instanceof TerraForgedRepositorySource source) {
-                        source.setDir(dir);
-                        return;
-                    }
-                }
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 }
