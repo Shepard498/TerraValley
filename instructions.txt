@@ -1,0 +1,246 @@
+Codex Implementation Instructions: Port TerraForged to Minecraft 1.21.1 (NeoForge 21.1.231)
+Date: 2026-06-07
+
+Goal
+Port TerraForged to Minecraft 1.21.1 on NeoForge 21.1.231, preserving the public mod identity and terrain/noise behavior as much as the modern Minecraft worldgen APIs allow.
+
+Verified Context
+- Upstream repository: https://github.com/TerraForged/TerraForged
+- The upstream TerraForged repository is archived and read-only as of 2025-11-12. Work must happen in a fork or local branch.
+- The visible `0.3.x` branch is a ForgeGradle/MixinGradle project, not a NeoForge project.
+- Current upstream build facts:
+  - `common.gradle` sets `minecraft_version = "1.19"`.
+  - `common.gradle` sets Java toolchain 17.
+  - `gradle.properties` sets `forge_version = 41.0.22`.
+  - `build.gradle` uses `net.minecraftforge.gradle`, ForgeGradle 5.1.x, Sponge MixinGradle, and official Mojang mappings.
+  - `build.gradle` depends on `net.minecraftforge:forge:${minecraft_version}-${forge_version}`.
+  - `common.gradle` depends on `com.terraforged:Engine:0.3.0` from `https://io.terraforged.com/maven/`.
+  - Forge-only source/resources are under `Forge/main/java` and `Forge/main/resources`.
+  - Existing metadata is `Forge/main/resources/META-INF/mods.toml`.
+- NeoForge 1.21.1 requires JDK 21.
+- NeoForge 21.1.231 exists on the official NeoForge Maven as `net.neoforged:neoforge:21.1.231`.
+- The NeoForge 1.21.1 NeoGradle MDK example uses plugin `net.neoforged.gradle.userdev` version `7.1.36` and dependency `implementation "net.neoforged:neoforge:${neo_version}"`.
+
+References
+- TerraForged repository: https://github.com/TerraForged/TerraForged
+- TerraForged build file: https://github.com/TerraForged/TerraForged/blob/0.3.x/build.gradle
+- TerraForged shared Gradle file: https://github.com/TerraForged/TerraForged/blob/0.3.x/common.gradle
+- TerraForged Forge metadata: https://github.com/TerraForged/TerraForged/blob/0.3.x/Forge/main/resources/META-INF/mods.toml
+- NeoForge 1.21.1 getting started docs: https://docs.neoforged.net/docs/1.21.1/gettingstarted/
+- NeoForge 1.21.1 mod metadata docs: https://docs.neoforged.net/docs/1.21.1/gettingstarted/modfiles/
+- NeoForge 21.1.231 Maven listing: https://maven.neoforged.net/releases/net/neoforged/neoforge/21.1.231/
+- NeoForge 1.21.1 NeoGradle MDK example: https://github.com/NeoForgeMDKs/MDK-1.21.1-NeoGradle/blob/main/build.gradle
+- Valleys, optional comparison target: https://modrinth.com/mod/valleys
+
+Prerequisites
+- JDK 21 installed and selected by Gradle.
+- Network access for Gradle plugin and Maven dependency resolution.
+- Git fork or writable clone of TerraForged.
+- Enough disk space for Minecraft decompilation and Gradle caches.
+- Optional clean Minecraft launcher/profile or Prism/Modrinth instance for runtime testing.
+
+Working Principles
+- Treat this as a real ForgeGradle-to-NeoForge migration plus a Minecraft 1.19-to-1.21.1 API port, not a simple version bump.
+- Keep the mod id `terraforged` and registry keys stable unless an API change forces a different shape.
+- Keep terrain algorithms deterministic. Do not rewrite noise behavior before a compile/runtime baseline exists.
+- Prefer official Mojang mappings unless there is a strong reason to introduce a different mapping layer.
+- Avoid large unrelated refactors. Make small, reviewable commits grouped by build config, metadata, API packages, worldgen, resources, and tests.
+- Do not block the base port on Valleys parity. Use Valleys only as an optional comparison target after TerraForged launches.
+
+Implementation Plan
+
+1. Prepare the workspace
+- Clone the fork or upstream repository.
+- Create branch `neoforge/1.21.1-port`.
+- Record the starting commit and current repository status.
+- Run:
+
+  ```bash
+  ./gradlew --version
+  ```
+
+- Confirm Gradle is using JDK 21. If the wrapper cannot run, fix wrapper/JDK issues before changing source code.
+
+2. Audit the current project
+- Inspect `settings.gradle`, `build.gradle`, `common.gradle`, `gradle.properties`, `Forge/main`, `Fabric`, `src`, generated resources, and mixin configuration.
+- Identify which classes are shared and which are loader-specific.
+- Verify whether `com.terraforged:Engine:0.3.0` still resolves. If it does not, locate source or a legally usable artifact before proceeding.
+- Build an inventory of expected port areas:
+  - Gradle and plugin setup
+  - Mod metadata
+  - Forge/NeoForge package imports
+  - Registries and deferred registers
+  - Event bus usage
+  - Mixins and access transformers
+  - World presets, chunk generators, biome sources, codecs, and registry bootstrapping
+  - Datagen and generated resources
+  - Client UI/config entry points
+  - Dedicated server behavior
+
+3. Replace ForgeGradle with NeoForge tooling
+- Use the official NeoForge 1.21.1 MDK as the baseline for Gradle structure.
+- For NeoGradle userdev, start from this shape and adapt it to the existing project:
+
+  ```groovy
+  plugins {
+      id "java-library"
+      id "maven-publish"
+      id "net.neoforged.gradle.userdev" version "7.1.36"
+  }
+
+  java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+  dependencies {
+      implementation "net.neoforged:neoforge:${neo_version}"
+  }
+  ```
+
+- Set or introduce these properties:
+
+  ```properties
+  minecraft_version=1.21.1
+  neo_version=21.1.231
+  mod_id=terraforged
+  ```
+
+- Remove ForgeGradle-specific dependency and configuration:
+  - `net.minecraftforge.gradle`
+  - `net.minecraftforge:forge:${minecraft_version}-${forge_version}`
+  - old `minecraft { mappings ... runs ... }` blocks
+  - `reobfJar` finalization
+- Keep Sponge Mixin annotation processing only if the project still needs mixins after the first audit.
+- Preserve the custom source set layout only if it still makes sense. Otherwise, migrate NeoForge code into a clear loader-specific source set or standard `src/main`.
+
+4. Migrate mod metadata
+- Replace Forge-era `META-INF/mods.toml` with NeoForge-era `META-INF/neoforge.mods.toml`.
+- Keep `modLoader="javafml"`.
+- Use NeoForge's 1.21.1 metadata shape, including `loaderVersion="[1,)"`.
+- Replace the Forge dependency block with NeoForge and Minecraft dependencies, for example:
+
+  ```toml
+  [[dependencies.terraforged]]
+      modId="neoforge"
+      type="required"
+      versionRange="[21.1.231,)"
+      ordering="NONE"
+      side="BOTH"
+
+  [[dependencies.terraforged]]
+      modId="minecraft"
+      type="required"
+      versionRange="[1.21.1,1.21.2)"
+      ordering="NONE"
+      side="BOTH"
+  ```
+
+- Preserve display name, logo, authors, license, and mod id.
+
+5. First build spike
+- Run:
+
+  ```bash
+  ./gradlew clean build --refresh-dependencies
+  ```
+
+- Capture the first compile errors without trying to fix everything at once.
+- Group errors by category: Gradle, package rename, registry/event API, Minecraft worldgen API, mixins/access, resources/datagen.
+- Commit the build configuration once dependency resolution and Gradle task configuration are sane, even if Java compilation still fails.
+
+6. Port NeoForge and Minecraft APIs incrementally
+- Replace still-valid Forge APIs with NeoForge equivalents, usually `net.minecraftforge.*` to `net.neoforged.neoforge.*`, but verify each symbol rather than blindly replacing.
+- Rework registration code around NeoForge 1.21.1 patterns:
+  - `DeferredRegister`
+  - `RegisterEvent`
+  - mod event bus vs game event bus
+  - lifecycle/common setup events
+- Update Minecraft 1.21.1 API changes deliberately:
+  - `ResourceLocation` construction helpers
+  - `Holder`, `HolderGetter`, `HolderLookup.Provider`, and `RegistryAccess`
+  - bootstrap contexts and registry ops
+  - codecs and `MapCodec` usage
+  - datagen providers and lookup futures
+- Keep compile-fix commits grouped by package or subsystem.
+
+7. Port worldgen carefully
+- Focus on the worldgen entry points first:
+  - custom world preset registration
+  - chunk generator codec
+  - biome source codec
+  - dimension/level stem integration
+  - server config or level-type behavior
+- Preserve existing seed handling and noise constants.
+- Add deterministic checks where practical:
+  - same seed
+  - same chunk coordinates
+  - expected height samples or coarse terrain statistics
+- Expect some terrain differences because Mojang internals changed between 1.19 and 1.21.1. Document any unavoidable differences instead of hiding them.
+
+8. Port mixins and access changes
+- List all mixin target classes and methods.
+- Verify every target against 1.21.1 official mappings.
+- Remove mixins that are no longer needed.
+- If access transformers are used, migrate or replace them with supported NeoForge access mechanisms.
+- Run client and server after mixin changes, because mixins can compile but fail at launch.
+
+9. Update resources and datagen
+- Regenerate data with the NeoForge run/data task once compilation allows it.
+- Remove stale generated resources that refer to removed registries or old folder names.
+- Verify world preset, biome modifier, structure, tag, and configured/placed feature resources against 1.21.1 paths and codecs.
+- Keep generated resources separate from hand-written resources where the project already does so.
+
+10. Runtime validation
+- Run:
+
+  ```bash
+  ./gradlew runClient
+  ./gradlew runServer
+  ```
+
+- For server testing, accept the EULA in the generated run directory and test joining locally if needed.
+- Validate:
+  - client reaches main menu
+  - TerraForged appears in the mod list
+  - TerraForged world preset is selectable or usable on a dedicated server
+  - new worlds generate without exceptions
+  - several seeds generate terrain across chunk boundaries
+  - no obvious biome/structure registry collisions
+  - dedicated server starts without loading client-only classes
+
+11. Compatibility validation
+- Start without other mods first.
+- Add compatible NeoForge 1.21.1 mods only after the base port works.
+- Prefer a small curated compatibility matrix over a large unstable pack:
+  - one biome/worldgen mod, if available
+  - one structure mod, if available
+  - one performance/diagnostic mod, if available
+- Record exact mod names and versions in the PR notes.
+
+12. Performance validation
+- Generate new chunks on a dedicated server.
+- Use Java Flight Recorder or another profiler to compare hot paths before optimizing.
+- Do not change terrain math for speed unless tests show determinism is preserved.
+
+13. Optional Valleys comparison
+- Investigate Valleys only after TerraForged builds and runs.
+- If Valleys source is unavailable, compare behavior through runtime output, screenshots, or sampled heightmaps.
+- Do not copy code or assets from Valleys unless license and permission are clear.
+
+Deliverables
+- Branch `neoforge/1.21.1-port`.
+- Buildable NeoForge 1.21.1 artifact.
+- Updated Gradle files and NeoForge metadata.
+- Updated generated resources, if needed.
+- Runtime validation notes for client, dedicated server, and world creation.
+- Known differences from older TerraForged behavior.
+- PR description or release notes with:
+  - target Minecraft and NeoForge versions
+  - major API migration notes
+  - tests run
+  - compatibility mods tested
+  - remaining risks
+
+First Tasks for Codex
+1. Inspect the repository and confirm the active branch, current build system, and source-set layout.
+2. Verify JDK 21 and Gradle wrapper behavior.
+3. Replace ForgeGradle with NeoForge tooling in the smallest possible build spike.
+4. Run a build and summarize the first compile-error categories before broad source edits.
