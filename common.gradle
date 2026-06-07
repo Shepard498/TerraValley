@@ -3,4 +3,4 @@ version = mod_version
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-project.ext.archives_base_name = "TerraForged"
+project.ext.archives_base_name = "TerraValley"
