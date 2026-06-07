@@ -39,6 +39,7 @@ import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.world.level.validation.DirectoryValidator;
 import net.minecraft.world.level.levelgen.presets.WorldPreset;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 
@@ -51,15 +52,16 @@ public class DatapackHook {
 
         if (!repository.isAvailable(PACK_FILE_ID)) {
             DataPackExporter.createWorldDatapack(dir);
+            TerraForged.LOG.info("World datapack path {} exists={}", dir.resolve(DataPackExporter.PACK_FILE_NAME), Files.exists(dir.resolve(DataPackExporter.PACK_FILE_NAME)));
             repository.addPackFinder(new FolderRepositorySource(dir, PackType.SERVER_DATA, PackSource.WORLD, ALLOW_ALL_VALIDATOR));
             repository.reload();
 
-            TerraForged.LOG.info("Injected datapack {}", PACK_FILE_ID);
+            TerraForged.LOG.info("Injected datapack {} available={} availableIds={}", PACK_FILE_ID, repository.isAvailable(PACK_FILE_ID), repository.getAvailableIds());
             changed = true;
         }
 
         if (repository.addPack(PACK_FILE_ID)) {
-            TerraForged.LOG.info("Selected datapack {}", PACK_FILE_ID);
+            TerraForged.LOG.info("Selected datapack {} selectedIds={}", PACK_FILE_ID, repository.getSelectedIds());
             changed = true;
         }
 
