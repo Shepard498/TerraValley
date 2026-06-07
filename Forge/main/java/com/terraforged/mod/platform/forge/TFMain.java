@@ -29,6 +29,7 @@ import com.terraforged.mod.Environment;
 import com.terraforged.mod.TerraForged;
 import com.terraforged.mod.command.TFCommands;
 import com.terraforged.mod.lifecycle.CommonSetup;
+import com.terraforged.mod.registry.DataRegistry;
 import com.terraforged.mod.worldgen.Generator;
 import com.terraforged.mod.worldgen.biome.Source;
 import com.mojang.serialization.MapCodec;
@@ -43,6 +44,7 @@ import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
@@ -69,6 +71,7 @@ public class TFMain extends TerraForged implements CommonAPI {
 
         modEventBus.addListener(this::onInit);
         modEventBus.addListener(this::onAddPackFinders);
+        modEventBus.addListener(this::onRegisterDataPackRegistries);
 
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
 
@@ -98,6 +101,14 @@ public class TFMain extends TerraForged implements CommonAPI {
                 true,
                 Pack.Position.TOP
         );
+    }
+
+    void onRegisterDataPackRegistries(DataPackRegistryEvent.NewRegistry event) {
+        CommonAPI.get().getRegistryManager().getInjectedRegistries().forEach(registry -> registerDataPackRegistry(event, registry));
+    }
+
+    private static <T> void registerDataPackRegistry(DataPackRegistryEvent.NewRegistry event, DataRegistry<T> registry) {
+        event.dataPackRegistry(registry.key().get(), registry.codec());
     }
 
     private static Path getRootPath() {
