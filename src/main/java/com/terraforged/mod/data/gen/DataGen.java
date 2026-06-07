@@ -112,12 +112,8 @@ public class DataGen {
         json.addProperty("ultrawarm", false);
 
         var light = new JsonObject();
-        light.addProperty("type", "minecraft:uniform");
-
-        var lightValue = new JsonObject();
-        lightValue.addProperty("max_inclusive", 7);
-        lightValue.addProperty("min_inclusive", 0);
-        light.add("value", lightValue);
+        light.addProperty("max_inclusive", 7);
+        light.addProperty("min_inclusive", 0);
         json.add("monster_spawn_light_level", light);
 
         export(dir, Registries.DIMENSION_TYPE, ResourceLocation.withDefaultNamespace("overworld"), json);
