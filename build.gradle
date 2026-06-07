@@ -1,87 +1,104 @@
-buildscript {
-    repositories {
-        maven { url "https://repo.spongepowered.org/maven" }
-        maven { url = "https://maven.minecraftforge.net" }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: "org.spongepowered", name: "mixingradle", version: "0.7.32", changing: true
-        classpath group: "net.minecraftforge.gradle", name: "ForgeGradle", version: "5.1.+", changing: true // 5.1.33
-    }
+plugins {
+    id "java-library"
+    id "maven-publish"
+    id "net.neoforged.gradle.userdev" version "7.1.36"
 }
-
-apply plugin: "net.minecraftforge.gradle"
-apply plugin: "org.spongepowered.mixin"
-apply plugin: "java"
 
 apply from: file("common.gradle")
 
 sourceSets {
-    main.java { srcDirs += "/Forge/main/java" }
-    main.resources { srcDirs += "/Forge/main/resources" }
+    main.java { srcDirs += "Forge/main/java" }
+    main.resources {
+        srcDirs += "Forge/main/resources"
+        srcDirs += "generated/resources"
+    }
 }
 
 repositories {
     maven { url "https://repo.spongepowered.org/maven" }
-
     flatDir { dirs "lib" }
 }
 
+base {
+    archivesName = "${archives_base_name}-${minecraft_version}"
+}
+
+runs {
+    configureEach {
+        systemProperty "forge.logging.markers", "REGISTRIES"
+        systemProperty "forge.logging.console.level", "debug"
+        systemProperty "mixin.env.remapRefMap", "true"
+        systemProperty "mixin.env.refMapRemappingFile", "${projectDir}/build/createSrgToMcp/output.srg"
+
+        argument "-mixin.config=terraforged.mixins.json"
+        jvmArgument "-Ddev"
+
+        workingDirectory project.layout.projectDirectory.dir("run").dir(name)
+        modSource project.sourceSets.main
+    }
+
+    client {
+        systemProperty "neoforge.enabledGameTestNamespaces", mod_id
+    }
+
+    server {
+        systemProperty "neoforge.enabledGameTestNamespaces", mod_id
+        argument "--nogui"
+    }
+
+    data {
+        jvmArgument "-Ddatagen"
+        arguments.addAll "--mod", mod_id, "--all", "--output", file("generated/resources/").absolutePath, "--existing", file("src/main/resources/").absolutePath
+    }
+}
+
+configurations {
+    localRuntime
+    runtimeClasspath.extendsFrom localRuntime
+}
+
 dependencies {
+    implementation "net.neoforged:neoforge:${neo_version}"
     annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 }
 
-jar {
-    finalizedBy("reobfJar")
-    manifest { attributes(["MixinConfigs": "terraforged.mixins.json"]) }
+tasks.named("jar", Jar).configure {
+    manifest {
+        attributes(["MixinConfigs": "terraforged.mixins.json"])
+    }
 }
 
-mixin {
-    add sourceSets.main, "terraforged.mixins.refmap.json"
+tasks.withType(ProcessResources).configureEach {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(["META-INF/neoforge.mods.toml"]) {
+        expand replaceProperties
+    }
 }
 
-minecraft {
-    mappings channel: "official", version: minecraft_version
-    runs {
-        client {
-            workingDirectory project.file("run")
-            property "forge.logging.markers", "REGISTRIES"
-            property "forge.logging.console.level", "debug"
-            arg "-mixin.config=terraforged.mixins.json"
-            jvmArgs "-Ddev"
-            mods {
-                terraforged {
-                    source sourceSets.main
-                }
-            }
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+}
+
+publishing {
+    publications {
+        register("mavenJava", MavenPublication) {
+            from components.java
         }
-
-        server {
-            workingDirectory project.file("run")
-            property "forge.logging.markers", "REGISTRIES"
-            property "forge.logging.console.level", "debug"
-            arg "-mixin.config=terraforged.mixins.json"
-            jvmArgs "-Ddev"
-            mods {
-                terraforged {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file("run")
-            property "forge.logging.markers", "REGISTRIES"
-            property "forge.logging.console.level", "debug"
-            args "--mod", "terraforged", "--server", "--output", file("generated")
-            arg "-mixin.config=terraforged.mixins.json"
-            jvmArgs "-Ddatagen"
-            mods {
-                terraforged {
-                    source sourceSets.main
-                }
-            }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/repo"
         }
     }
 }
