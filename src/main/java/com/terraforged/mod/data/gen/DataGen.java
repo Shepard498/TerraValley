@@ -89,6 +89,7 @@ public class DataGen {
         dimensions.add("minecraft:the_end", createEndPreset());
         json.add("dimensions", dimensions);
         export(dir, Registries.WORLD_PRESET, TerraForged.WORLD_PRESET, json);
+        export(dir, Registries.WORLD_PRESET, ResourceLocation.withDefaultNamespace("normal"), json.deepCopy());
     }
 
     private void genDimensionType(Path dir, RegistryAccess registries, RegistryOps<JsonElement> writeOps) {

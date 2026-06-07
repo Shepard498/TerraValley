@@ -41,8 +41,13 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackSource;
 
 import java.nio.file.Path;
 
@@ -63,6 +68,7 @@ public class TFMain extends TerraForged implements CommonAPI {
         CHUNK_GENERATORS.register(modEventBus);
 
         modEventBus.addListener(this::onInit);
+        modEventBus.addListener(this::onAddPackFinders);
 
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
 
@@ -81,6 +87,17 @@ public class TFMain extends TerraForged implements CommonAPI {
 
     void onRegisterCommands(RegisterCommandsEvent event) {
         TFCommands.register(event.getDispatcher());
+    }
+
+    void onAddPackFinders(AddPackFindersEvent event) {
+        event.addPackFinders(
+                TerraForged.location("default"),
+                PackType.SERVER_DATA,
+                Component.literal("TerraForged Default Worldgen"),
+                PackSource.BUILT_IN,
+                true,
+                Pack.Position.TOP
+        );
     }
 
     private static Path getRootPath() {

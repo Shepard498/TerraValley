@@ -22,6 +22,7 @@ What works:
 - `./gradlew jar --stacktrace` builds `build/libs/TerraForged-1.21.1-0.4.0-alpha-1.jar`.
 - `./gradlew build --stacktrace` succeeds. The old visual/manual test classes compile, and Gradle is configured not to fail when no automated tests are discovered.
 - `./gradlew runData --stacktrace` now starts NeoForge datagen and completes successfully.
+- The TerraForged default datapack is now exposed through NeoForge's pack finder as an always-active built-in server datapack.
 
 Resolved blocker:
 
@@ -54,6 +55,7 @@ Checkpoint progress:
 - `ChunkGenerator` and `BiomeSource` implementations have been moved to the 1.21 `MapCodec` and async generation method contracts.
 - Biome-source and chunk-generator codecs are now registered through NeoForge `DeferredRegister` on the mod event bus instead of late direct registration during datagen.
 - Datagen has a compile-first 1.21 provider path that writes world preset/dimension JSON explicitly and exports TerraForged's in-memory data registries directly.
+- The generated default pack now also overrides `minecraft:normal` so normal world creation can resolve to the TerraForged overworld generator without the removed create-world UI mixins.
 - Tag loading, light queuing, world-dimensions detection, and `RandomState` seed access currently use compile-first placeholders.
 
 Current blockers:
