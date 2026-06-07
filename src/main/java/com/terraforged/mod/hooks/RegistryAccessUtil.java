@@ -27,7 +27,6 @@ package com.terraforged.mod.hooks;
 import com.mojang.serialization.DynamicOps;
 import com.terraforged.mod.Environment;
 import com.terraforged.mod.TerraForged;
-import com.terraforged.mod.util.ReflectionUtil;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.Registry;
@@ -35,32 +34,24 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.RegistryOps;
 
-import java.lang.invoke.MethodHandle;
 import java.util.Optional;
 
 public class RegistryAccessUtil {
-    private static final MethodHandle REGISTRY_ACCESS_GETTER = ReflectionUtil.field(RegistryOps.class, RegistryAccess.class);
-
     public static Optional<RegistryAccess> getRegistryAccess(DynamicOps<?> ops) {
         if (!(ops instanceof RegistryOps<?>)) {
             return Optional.empty();
         }
 
-        try {
-            return Optional.ofNullable(getRegistryAccess((RegistryOps<?>) ops));
-        } catch (Throwable t) {
-            t.printStackTrace();
-            return Optional.empty();
-        }
+        return getRegistryAccess((RegistryOps<?>) ops);
     }
 
-    public static RegistryAccess getRegistryAccess(RegistryOps<?> ops) {
-        try {
-            return (RegistryAccess) REGISTRY_ACCESS_GETTER.invokeExact(ops);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            return null;
+    public static Optional<RegistryAccess> getRegistryAccess(RegistryOps<?> ops) {
+        if (ops.lookupProvider instanceof RegistryOps.HolderLookupAdapter adapter
+                && adapter.lookupProvider instanceof RegistryAccess access) {
+            return Optional.of(access);
         }
+
+        return Optional.empty();
     }
 
     public static <T> MappedRegistry<T> copy(Registry<T> input) {
