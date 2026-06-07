@@ -1,5 +1,4 @@
 {
-  "type": "terraforged:dolomites",
   "weight": 1.25,
   "noise": {
     "type": "Scale",
@@ -32,7 +31,7 @@
             "gain": 0.5,
             "lacunarity": 2,
             "octaves": 3,
-            "seed": 390691
+            "seed": 236454
           }
         },
         "y": {
@@ -52,7 +51,7 @@
             "gain": 0.5,
             "lacunarity": 2,
             "octaves": 3,
-            "seed": 390692
+            "seed": 236455
           }
         }
       },
@@ -87,7 +86,7 @@
                       "gain": 0.5,
                       "lacunarity": 2,
                       "octaves": 2,
-                      "seed": 473101
+                      "seed": 273920
                     }
                   },
                   "y": {
@@ -107,7 +106,7 @@
                       "gain": 0.5,
                       "lacunarity": 2,
                       "octaves": 2,
-                      "seed": 473102
+                      "seed": 273921
                     }
                   }
                 },
@@ -138,7 +137,7 @@
                       "gain": 0.5,
                       "lacunarity": 2,
                       "octaves": 4,
-                      "seed": 322252
+                      "seed": 473827
                     }
                   }
                 }
@@ -174,7 +173,7 @@
                         "gain": 0.5,
                         "lacunarity": 2,
                         "octaves": 5,
-                        "seed": 390493
+                        "seed": 117082
                       }
                     },
                     "y": {
@@ -194,7 +193,7 @@
                         "gain": 0.5,
                         "lacunarity": 2,
                         "octaves": 5,
-                        "seed": 390494
+                        "seed": 117083
                       }
                     }
                   },
@@ -225,7 +224,7 @@
                         "gain": 0.6,
                         "lacunarity": 2.7,
                         "octaves": 5,
-                        "seed": 35400
+                        "seed": 46261
                       }
                     }
                   }
@@ -273,7 +272,7 @@
                           "gain": 0.5,
                           "lacunarity": 2,
                           "octaves": 2,
-                          "seed": 473101
+                          "seed": 273920
                         }
                       },
                       "y": {
@@ -293,7 +292,7 @@
                           "gain": 0.5,
                           "lacunarity": 2,
                           "octaves": 2,
-                          "seed": 473102
+                          "seed": 273921
                         }
                       }
                     },
@@ -324,7 +323,7 @@
                           "gain": 0.5,
                           "lacunarity": 2,
                           "octaves": 4,
-                          "seed": 322252
+                          "seed": 473827
                         }
                       }
                     }
@@ -344,7 +343,7 @@
                   "gain": 0.5,
                   "lacunarity": 2,
                   "octaves": 4,
-                  "seed": 138145
+                  "seed": 167119
                 }
               }
             ]
@@ -352,5 +351,9 @@
         ]
       }
     }
+  },
+  "type": {
+    "name": "dolomites",
+    "parent": "mountains"
   }
 }

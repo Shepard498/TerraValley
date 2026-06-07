@@ -26,11 +26,7 @@ package com.terraforged.mod.lifecycle;
 
 import com.terraforged.mod.Environment;
 import com.terraforged.mod.TerraForged;
-import com.terraforged.mod.worldgen.Generator;
-import com.terraforged.mod.worldgen.biome.Source;
 import com.terraforged.mod.worldgen.datapack.DataPackExporter;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 
 public class CommonSetup extends Stage {
     public static final CommonSetup STAGE = new CommonSetup();
@@ -39,12 +35,6 @@ public class CommonSetup extends Stage {
 
     @Override
     protected void doInit() {
-        TerraForged.LOG.info("Registering world-gen core codecs");
-        Registry.register(BuiltInRegistries.BIOME_SOURCE, TerraForged.location("climate"), Source.CODEC);
-        Registry.register(BuiltInRegistries.CHUNK_GENERATOR, TerraForged.location("generator"), Generator.CODEC);
-
-//        Registry.register(Registry.CHUNK_GENERATOR, TerraForged.location("profiler"), GeneratorProfiler.CODEC);
-
         if (!Environment.DATA_GEN) {
             DataPackExporter.extractDefaultPack();
         }

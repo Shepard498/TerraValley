@@ -27,6 +27,7 @@ package com.terraforged.mod.data.gen;
 import com.google.common.hash.Hashing;
 import com.google.common.hash.HashingOutputStream;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import com.terraforged.mod.CommonAPI;
@@ -36,9 +37,7 @@ import com.terraforged.mod.data.util.JsonFormatter;
 import com.terraforged.mod.registry.DataRegistry;
 import com.terraforged.mod.util.FileUtil;
 import com.terraforged.mod.util.TagLoader;
-import com.terraforged.mod.worldgen.GeneratorPreset;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -46,11 +45,7 @@ import net.minecraft.data.CachedOutput;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
-import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.level.dimension.LevelStem;
-import net.minecraft.world.level.levelgen.presets.WorldPreset;
-import net.minecraft.world.level.levelgen.presets.WorldPresets;
+import com.terraforged.mod.worldgen.terrain.TerrainLevels;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -87,29 +82,44 @@ public class DataGen {
     }
 
     private void genPreset(Path dir, RegistryAccess registries, RegistryOps<JsonElement> writeOps) {
-        var normal = registries.registryOrThrow(Registries.WORLD_PRESET)
-                .getOrThrow(WorldPresets.NORMAL);
-
-        var json = Codecs.encode(normal, WorldPreset.DIRECT_CODEC, writeOps).getAsJsonObject();
-        var dimension = GeneratorPreset.getDefault(registries);
-        var dimensionJson = Codecs.encode(dimension, LevelStem.CODEC, writeOps);
-
-        var dimensions = json.getAsJsonObject("dimensions");
-        dimensions.add(LevelStem.OVERWORLD.location().toString(), dimensionJson);
-
+        var json = new JsonObject();
+        var dimensions = new JsonObject();
+        dimensions.add("minecraft:overworld", createOverworldPreset(writeOps));
+        dimensions.add("minecraft:the_nether", createNetherPreset());
+        dimensions.add("minecraft:the_end", createEndPreset());
+        json.add("dimensions", dimensions);
         export(dir, Registries.WORLD_PRESET, TerraForged.WORLD_PRESET, json);
     }
 
     private void genDimensionType(Path dir, RegistryAccess registries, RegistryOps<JsonElement> writeOps) {
-        var registry = registries.registryOrThrow(Registries.DIMENSION_TYPE);
-        var overworld = registry.getOrThrow(BuiltinDimensionTypes.OVERWORLD);
-
-        var json = Codecs.encode(overworld, DimensionType.DIRECT_CODEC, writeOps).getAsJsonObject();
+        var json = new JsonObject();
+        json.addProperty("effects", TerraForged.DIMENSION_EFFECTS.toString());
+        json.addProperty("infiniburn", "#minecraft:infiniburn_overworld");
+        json.addProperty("ambient_light", 0);
+        json.addProperty("bed_works", true);
+        json.addProperty("coordinate_scale", 1);
+        json.addProperty("has_ceiling", false);
+        json.addProperty("has_raids", true);
+        json.addProperty("has_skylight", true);
         json.addProperty("height", 1024);
         json.addProperty("logical_height", 1024);
-        json.addProperty("effects", TerraForged.DIMENSION_EFFECTS.toString());
+        json.addProperty("min_y", -64);
+        json.addProperty("monster_spawn_block_light_limit", 0);
+        json.addProperty("natural", true);
+        json.addProperty("piglin_safe", false);
+        json.addProperty("respawn_anchor_works", false);
+        json.addProperty("ultrawarm", false);
 
-        export(dir, Registries.DIMENSION_TYPE, BuiltinDimensionTypes.OVERWORLD.location(), json);
+        var light = new JsonObject();
+        light.addProperty("type", "minecraft:uniform");
+
+        var lightValue = new JsonObject();
+        lightValue.addProperty("max_inclusive", 7);
+        lightValue.addProperty("min_inclusive", 0);
+        light.add("value", lightValue);
+        json.add("monster_spawn_light_level", light);
+
+        export(dir, Registries.DIMENSION_TYPE, ResourceLocation.withDefaultNamespace("overworld"), json);
     }
 
     private void genBuiltin(Path dir, RegistryAccess registries, RegistryOps<JsonElement> writeOps) {
@@ -123,14 +133,12 @@ public class DataGen {
     }
 
     private <T> void export(Path dir, DataRegistry<T> builtin, RegistryAccess access, DynamicOps<JsonElement> ops) {
-        var registry = access.registryOrThrow(builtin.key().get());
+        var registry = builtin.key().get();
 
-        TerraForged.LOG.info("Exporting registry: {}", registry.key());
+        TerraForged.LOG.info("Exporting registry: {}", registry);
         for (var entry : builtin) {
             try {
-                var value = registry.getOrThrow(entry.getKey());
-
-                var json = builtin.codec().encodeStart(ops, value)
+                var json = builtin.codec().encodeStart(ops, entry.getValue())
                         .mapError(s -> {
                             logError(s);
                             return s;
@@ -138,11 +146,56 @@ public class DataGen {
                         .result()
                         .orElseThrow();
 
-                export(dir, registry.key(), entry.getKey().location(), json);
+                export(dir, registry, entry.getKey().location(), json);
             } catch (Throwable t) {
                 new EncodingException(entry.getKey(), t).printStackTrace();
             }
         }
+    }
+
+    private JsonObject createOverworldPreset(DynamicOps<JsonElement> ops) {
+        var dimension = new JsonObject();
+        dimension.addProperty("type", "minecraft:overworld");
+
+        var generator = new JsonObject();
+        generator.addProperty("type", TerraForged.location("generator").toString());
+        generator.add("levels", Codecs.encode(TerrainLevels.DEFAULT.get(), TerrainLevels.CODEC, ops));
+        dimension.add("generator", generator);
+
+        return dimension;
+    }
+
+    private JsonObject createNetherPreset() {
+        var dimension = new JsonObject();
+        dimension.addProperty("type", "minecraft:the_nether");
+
+        var biomeSource = new JsonObject();
+        biomeSource.addProperty("preset", "minecraft:nether");
+        biomeSource.addProperty("type", "minecraft:multi_noise");
+
+        var generator = new JsonObject();
+        generator.addProperty("settings", "minecraft:nether");
+        generator.addProperty("type", "minecraft:noise");
+        generator.add("biome_source", biomeSource);
+        dimension.add("generator", generator);
+
+        return dimension;
+    }
+
+    private JsonObject createEndPreset() {
+        var dimension = new JsonObject();
+        dimension.addProperty("type", "minecraft:the_end");
+
+        var biomeSource = new JsonObject();
+        biomeSource.addProperty("type", "minecraft:the_end");
+
+        var generator = new JsonObject();
+        generator.addProperty("settings", "minecraft:end");
+        generator.addProperty("type", "minecraft:noise");
+        generator.add("biome_source", biomeSource);
+        dimension.add("generator", generator);
+
+        return dimension;
     }
 
     private void export(Path dir, ResourceKey<?> registry, ResourceLocation name, JsonElement json) {

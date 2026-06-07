@@ -1,0 +1,110 @@
+{
+  "weight": 1.75,
+  "noise": {
+    "type": "Clamp",
+    "max": {
+      "type": "Const",
+      "value": 1
+    },
+    "min": {
+      "type": "Const",
+      "value": 0
+    },
+    "source": {
+      "type": "Bias",
+      "bias": {
+        "type": "Const",
+        "value": 0.02
+      },
+      "source": {
+        "type": "Warp",
+        "domain": {
+          "type": "DomainWarp",
+          "distance": {
+            "type": "Const",
+            "value": 36
+          },
+          "x": {
+            "type": "Map",
+            "max": {
+              "type": "Const",
+              "value": 0.5
+            },
+            "min": {
+              "type": "Const",
+              "value": -0.5
+            },
+            "source": {
+              "interpolation": "CURVE3",
+              "type": "Perlin",
+              "frequency": 0.008,
+              "gain": 0.5,
+              "lacunarity": 2,
+              "octaves": 3,
+              "seed": 26611
+            }
+          },
+          "y": {
+            "type": "Map",
+            "max": {
+              "type": "Const",
+              "value": 0.5
+            },
+            "min": {
+              "type": "Const",
+              "value": -0.5
+            },
+            "source": {
+              "interpolation": "CURVE3",
+              "type": "Perlin",
+              "frequency": 0.008,
+              "gain": 0.5,
+              "lacunarity": 2,
+              "octaves": 3,
+              "seed": 26612
+            }
+          }
+        },
+        "source": {
+          "type": "Scale",
+          "scale": {
+            "type": "Const",
+            "value": 0.5
+          },
+          "source": {
+            "type": "Steps",
+            "curve": {
+              "mode": "LINEAR",
+              "type": "Interpolation"
+            },
+            "slope_max": {
+              "type": "Const",
+              "value": 0.35
+            },
+            "slope_min": {
+              "type": "Const",
+              "value": 0.1
+            },
+            "source": {
+              "interpolation": "CURVE3",
+              "type": "SimplexRidge",
+              "frequency": 0.004,
+              "gain": 0.975,
+              "lacunarity": 2,
+              "octaves": 4,
+              "seed": 179394
+            },
+            "steps": {
+              "type": "Const",
+              "value": 8
+            }
+          }
+        }
+      }
+    }
+  },
+  "type": {
+    "name": "badlands",
+    "parent": "hills"
+  }
+}

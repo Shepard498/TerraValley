@@ -24,18 +24,30 @@
 
 package com.terraforged.mod.worldgen.biome;
 
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.MapLike;
+import com.mojang.serialization.RecordBuilder;
 import com.terraforged.mod.data.codec.WorldGenCodec;
 import net.minecraft.core.RegistryAccess;
 
-public class SourceCodec implements WorldGenCodec<Source> {
+import java.util.stream.Stream;
+
+public class SourceCodec extends MapCodec<Source> {
     @Override
-    public <T> Source decode(DynamicOps<T> ops, T input, RegistryAccess access) {
-        return new Source(null, access);
+    public <T> Stream<T> keys(DynamicOps<T> ops) {
+        return Stream.empty();
     }
 
     @Override
-    public <T> T encode(Source source, DynamicOps<T> ops) {
-        return ops.empty();
+    public <T> DataResult<Source> decode(DynamicOps<T> ops, MapLike<T> input) {
+        var access = WorldGenCodec.CODEC.decode(ops, input);
+        return access.map(registries -> new Source(null, registries));
+    }
+
+    @Override
+    public <T> RecordBuilder<T> encode(Source source, DynamicOps<T> ops, RecordBuilder<T> prefix) {
+        return prefix;
     }
 }

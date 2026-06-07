@@ -24,7 +24,7 @@
 
 package com.terraforged.mod.worldgen.biome;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.terraforged.engine.util.pos.PosUtil;
 import com.terraforged.mod.util.storage.LongCache;
 import com.terraforged.mod.util.storage.LossyCache;
@@ -39,11 +39,11 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.biome.Climate;
 
-import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class Source extends BiomeSource {
-    public static final Codec<Source> CODEC = new SourceCodec();
+    public static final MapCodec<Source> CODEC = new SourceCodec();
     public static final Climate.Sampler NOOP_CLIMATE_SAMPLER = Climate.empty();
 
     protected int seed;
@@ -55,7 +55,6 @@ public class Source extends BiomeSource {
     protected final LongCache<Holder<Biome>> cache = LossyCache.concurrent(2048, i -> (Holder<Biome>[]) new Holder[i]);
 
     public Source(INoiseGenerator noise, RegistryAccess access) {
-        super(List.of());
         this.registries = access;
         this.biomeMapManager = new BiomeMapManager(access);
         this.possibleBiomes = new ObjectLinkedOpenHashSet<>(biomeMapManager.getOverworldBiomes());
@@ -76,12 +75,12 @@ public class Source extends BiomeSource {
      * We instead maintain our own set with the actual biomes and override here :)
      */
     @Override
-    public Set<Holder<Biome>> possibleBiomes() {
-        return possibleBiomes;
+    protected Stream<Holder<Biome>> collectPossibleBiomes() {
+        return possibleBiomes.stream();
     }
 
     @Override
-    protected Codec<? extends BiomeSource> codec() {
+    protected MapCodec<? extends BiomeSource> codec() {
         return CODEC;
     }
 

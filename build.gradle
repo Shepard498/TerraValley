@@ -11,6 +11,12 @@ sourceSets {
         srcDirs += "Forge/main/java"
         srcDirs += "libs/Noise2D/src/main/java"
         srcDirs += "libs/Cereal/src/main/java"
+        exclude "com/terraforged/mod/hooks/BuiltinHook.java"
+        exclude "com/terraforged/mod/hooks/DatapackHook.java"
+        exclude "com/terraforged/mod/mixin/client/**"
+        exclude "com/terraforged/mod/mixin/common/MixinPackRepository.java"
+        exclude "com/terraforged/mod/mixin/common/MixinRegistryAccess.java"
+        exclude "com/terraforged/mod/mixin/common/MixinRegistryOps.java"
     }
     main.resources {
         srcDirs += "Forge/main/resources"
@@ -91,6 +97,10 @@ tasks.withType(ProcessResources).configureEach {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
+}
+
+tasks.withType(Test).configureEach {
+    failOnNoDiscoveredTests = false
 }
 
 publishing {

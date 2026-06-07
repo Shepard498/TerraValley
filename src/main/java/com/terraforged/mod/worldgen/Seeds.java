@@ -25,11 +25,18 @@
 package com.terraforged.mod.worldgen;
 
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
 import net.minecraft.world.level.levelgen.RandomState;
 
 public interface Seeds {
     static int get(RandomState state) {
-        return get(state.legacyLevelSeed());
+        // TODO 1.21: RandomState no longer exposes legacyLevelSeed directly.
+        return 0;
+    }
+
+    static int get(ChunkGeneratorStructureState state) {
+        // TODO 1.21: ChunkGeneratorStructureState no longer exposes legacyLevelSeed directly.
+        return 0;
     }
 
     static int get(WorldGenLevel level) {

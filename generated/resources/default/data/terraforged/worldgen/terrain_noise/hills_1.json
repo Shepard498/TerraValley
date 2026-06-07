@@ -1,0 +1,78 @@
+{
+  "weight": 2,
+  "noise": {
+    "type": "Clamp",
+    "max": {
+      "type": "Const",
+      "value": 1
+    },
+    "min": {
+      "type": "Const",
+      "value": 0
+    },
+    "source": {
+      "type": "Bias",
+      "bias": {
+        "type": "Const",
+        "value": 0.02
+      },
+      "source": {
+        "type": "Max",
+        "modules": [
+          {
+            "type": "Add",
+            "modules": [
+              {
+                "type": "Scale",
+                "scale": {
+                  "type": "Const",
+                  "value": 0.36
+                },
+                "source": {
+                  "interpolation": "CURVE3",
+                  "type": "Simplex",
+                  "frequency": 0.003,
+                  "gain": 0.5,
+                  "lacunarity": 2,
+                  "octaves": 4,
+                  "seed": 455169
+                }
+              },
+              {
+                "type": "Scale",
+                "scale": {
+                  "type": "Const",
+                  "value": 0.043
+                },
+                "source": {
+                  "interpolation": "CURVE3",
+                  "type": "Simplex",
+                  "frequency": 0.013,
+                  "gain": 0.5,
+                  "lacunarity": 2,
+                  "octaves": 2,
+                  "seed": 143820
+                }
+              }
+            ]
+          },
+          {
+            "type": "Scale",
+            "scale": {
+              "type": "Const",
+              "value": 0.05
+            },
+            "source": {
+              "type": "Const",
+              "value": 0
+            }
+          }
+        ]
+      }
+    }
+  },
+  "type": {
+    "name": "hills",
+    "parent": "flats"
+  }
+}

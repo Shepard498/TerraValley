@@ -97,7 +97,7 @@ public class ViabilityTest {
                 rgb = Color.HSBtoRGB(0.7F, 0.4F, 0.75F);
             } else {
                 var c = biome.getColor();
-                Color.RGBtoHSB(c.getRed(), c.getGreen(), c.getBlue(), hsb);
+                Color.RGBtoHSB((c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF, hsb);
 
                 float elev = (scaledHeight - levels.seaLevel) / (levels.maxY - levels.seaLevel);
                 elev = 0.25F + 0.75F * elev;

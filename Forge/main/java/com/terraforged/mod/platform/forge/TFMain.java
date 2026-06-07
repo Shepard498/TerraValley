@@ -29,6 +29,12 @@ import com.terraforged.mod.Environment;
 import com.terraforged.mod.TerraForged;
 import com.terraforged.mod.command.TFCommands;
 import com.terraforged.mod.lifecycle.CommonSetup;
+import com.terraforged.mod.worldgen.Generator;
+import com.terraforged.mod.worldgen.biome.Source;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.biome.BiomeSource;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
@@ -36,13 +42,25 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.nio.file.Path;
 
 @Mod(TerraForged.MODID)
 public class TFMain extends TerraForged implements CommonAPI {
+    private static final DeferredRegister<MapCodec<? extends BiomeSource>> BIOME_SOURCES = DeferredRegister.create(BuiltInRegistries.BIOME_SOURCE, MODID);
+    private static final DeferredRegister<MapCodec<? extends ChunkGenerator>> CHUNK_GENERATORS = DeferredRegister.create(BuiltInRegistries.CHUNK_GENERATOR, MODID);
+
+    static {
+        BIOME_SOURCES.register("climate", () -> Source.CODEC);
+        CHUNK_GENERATORS.register("generator", () -> Generator.CODEC);
+    }
+
     public TFMain(IEventBus modEventBus) {
         super(TFMain::getRootPath);
+
+        BIOME_SOURCES.register(modEventBus);
+        CHUNK_GENERATORS.register(modEventBus);
 
         modEventBus.addListener(this::onInit);
 

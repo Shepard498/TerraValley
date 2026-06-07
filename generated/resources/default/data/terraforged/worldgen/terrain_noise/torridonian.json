@@ -1,0 +1,139 @@
+{
+  "weight": 2.5,
+  "noise": {
+    "type": "Warp",
+    "domain": {
+      "type": "DomainWarp",
+      "distance": {
+        "type": "Const",
+        "value": 160
+      },
+      "x": {
+        "type": "Map",
+        "max": {
+          "type": "Const",
+          "value": 0.5
+        },
+        "min": {
+          "type": "Const",
+          "value": -0.5
+        },
+        "source": {
+          "interpolation": "CURVE3",
+          "type": "Perlin",
+          "frequency": 0.002,
+          "gain": 0.5,
+          "lacunarity": 2,
+          "octaves": 3,
+          "seed": 468513
+        }
+      },
+      "y": {
+        "type": "Map",
+        "max": {
+          "type": "Const",
+          "value": 0.5
+        },
+        "min": {
+          "type": "Const",
+          "value": -0.5
+        },
+        "source": {
+          "interpolation": "CURVE3",
+          "type": "Perlin",
+          "frequency": 0.002,
+          "gain": 0.5,
+          "lacunarity": 2,
+          "octaves": 3,
+          "seed": 468514
+        }
+      }
+    },
+    "source": {
+      "type": "Max",
+      "modules": [
+        {
+          "type": "Scale",
+          "scale": {
+            "type": "Const",
+            "value": 0.65
+          },
+          "source": {
+            "type": "Add",
+            "modules": [
+              {
+                "type": "Scale",
+                "scale": {
+                  "type": "Const",
+                  "value": 0.5
+                },
+                "source": {
+                  "type": "Terrace",
+                  "blend_range": 0.2,
+                  "steps": 4,
+                  "cliff": {
+                    "type": "Const",
+                    "value": 0.75
+                  },
+                  "ramp": {
+                    "type": "Const",
+                    "value": 0.45
+                  },
+                  "ramp_height": {
+                    "type": "Const",
+                    "value": 0.2
+                  },
+                  "source": {
+                    "interpolation": "CURVE3",
+                    "type": "Simplex",
+                    "frequency": 0.002,
+                    "gain": 0.5,
+                    "lacunarity": 2,
+                    "octaves": 4,
+                    "seed": 231465
+                  }
+                }
+              },
+              {
+                "type": "Scale",
+                "scale": {
+                  "type": "Const",
+                  "value": 0.05
+                },
+                "source": {
+                  "interpolation": "CURVE3",
+                  "type": "Simplex",
+                  "frequency": 0.011,
+                  "gain": 0.5,
+                  "lacunarity": 2,
+                  "octaves": 2,
+                  "seed": 471898
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Scale",
+          "scale": {
+            "type": "Const",
+            "value": 0.4
+          },
+          "source": {
+            "interpolation": "CURVE3",
+            "type": "SimplexRidge",
+            "frequency": 0.002,
+            "gain": 0.975,
+            "lacunarity": 2,
+            "octaves": 5,
+            "seed": 170188
+          }
+        }
+      ]
+    }
+  },
+  "type": {
+    "name": "torridonian",
+    "parent": "hills"
+  }
+}

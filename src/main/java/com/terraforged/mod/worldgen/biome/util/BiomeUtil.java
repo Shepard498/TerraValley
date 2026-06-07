@@ -35,10 +35,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class BiomeUtil {
     private static final Map<BiomeType, ResourceLocation> TYPE_NAMES = new EnumMap<>(BiomeType.class);
@@ -111,9 +109,4 @@ public class BiomeUtil {
         return temperate;
     }
 
-    private static Set<Holder<Biome>> getVanillaOverworldBiomes(Registry<Biome> biomes) {
-        return MultiNoiseBiomeSource.Preset.OVERWORLD.possibleBiomes()
-                .map(biomes::getOrCreateHolderOrThrow)
-                .collect(Collectors.toSet());
-    }
 }

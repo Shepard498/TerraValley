@@ -119,7 +119,7 @@ public class TFCommands {
         if (terrain == null) {
             result = text("Invalid terrain: " + name).withStyle(ChatFormatting.RED);
         } else {
-            int seed = Seeds.get(state.legacyLevelSeed());
+            int seed = Seeds.get(state);
             int maxRadius = Math.min(100, radius + 50);
             long pos = generator.getNoiseGenerator().find(seed, at.getX(), at.getZ(), radius, maxRadius, terrain);
 

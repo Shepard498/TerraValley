@@ -24,7 +24,7 @@
 
 package com.terraforged.mod.worldgen;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.terraforged.mod.data.codec.WorldGenCodec;
 import com.terraforged.mod.worldgen.biome.BiomeGenerator;
@@ -36,15 +36,14 @@ import com.terraforged.mod.worldgen.terrain.TerrainLevels;
 import com.terraforged.mod.worldgen.util.ChunkUtil;
 import com.terraforged.mod.worldgen.util.ThreadPool;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.*;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
@@ -55,12 +54,10 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 public class Generator extends ChunkGenerator implements IGenerator {
-    public static final Codec<Generator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+    public static final MapCodec<Generator> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             TerrainLevels.CODEC.optionalFieldOf("levels", TerrainLevels.DEFAULT.get()).forGetter(g -> g.levels),
             WorldGenCodec.CODEC.forGetter(Generator::getRegistries)
     ).apply(instance, instance.stable(GeneratorPreset::build)));
@@ -78,20 +75,13 @@ public class Generator extends ChunkGenerator implements IGenerator {
                      Source biomeSource,
                      BiomeGenerator biomeGenerator,
                      INoiseGenerator noiseGenerator) {
-        super(vanillaGen.getStructureSets(), Optional.empty(), biomeSource);
+        super(biomeSource);
         this.levels = levels;
         this.vanillaGen = vanillaGen;
         this.biomeSource = biomeSource;
         this.biomeGenerator = biomeGenerator;
         this.noiseGenerator = noiseGenerator;
         this.terrainCache = new TerrainCache(levels, noiseGenerator);
-    }
-
-    @Override
-    public void ensureStructuresGenerated(RandomState state) {
-        biomeSource.withSeed(state.legacyLevelSeed());
-
-        super.ensureStructuresGenerated(state);
     }
 
     protected RegistryAccess getRegistries() {
@@ -115,7 +105,7 @@ public class Generator extends ChunkGenerator implements IGenerator {
     }
 
     @Override
-    public Codec<? extends ChunkGenerator> codec() {
+    public MapCodec<? extends ChunkGenerator> codec() {
         return CODEC;
     }
 
@@ -140,9 +130,9 @@ public class Generator extends ChunkGenerator implements IGenerator {
     }
 
     @Override
-    public void createStructures(RegistryAccess access, RandomState state, StructureManager structures, ChunkAccess chunk, StructureTemplateManager templates, long seed) {
+    public void createStructures(RegistryAccess access, ChunkGeneratorStructureState state, StructureManager structures, ChunkAccess chunk, StructureTemplateManager templates) {
         terrainCache.hint(Seeds.get(state), chunk.getPos());
-        super.createStructures(access, state, structures, chunk, templates, seed);
+        super.createStructures(access, state, structures, chunk, templates);
     }
 
     @Override
@@ -152,7 +142,7 @@ public class Generator extends ChunkGenerator implements IGenerator {
     }
 
     @Override
-    public CompletableFuture<ChunkAccess> createBiomes(Registry<Biome> registry, Executor executor, RandomState state, Blender blender, StructureManager structures, ChunkAccess chunk) {
+    public CompletableFuture<ChunkAccess> createBiomes(RandomState state, Blender blender, StructureManager structures, ChunkAccess chunk) {
         terrainCache.hint(Seeds.get(state), chunk.getPos());
         return CompletableFuture.supplyAsync(() -> {
             ChunkUtil.fillNoiseBiomes(chunk, biomeSource, localResource.get());
@@ -161,8 +151,8 @@ public class Generator extends ChunkGenerator implements IGenerator {
     }
 
     @Override
-    public CompletableFuture<ChunkAccess> fillFromNoise(Executor executor, Blender blender, RandomState state, StructureManager structureManager, ChunkAccess chunkAccess) {
-        return terrainCache.combineAsync(executor, Seeds.get(state), chunkAccess, (chunk, terrainData) -> {
+    public CompletableFuture<ChunkAccess> fillFromNoise(Blender blender, RandomState state, StructureManager structureManager, ChunkAccess chunkAccess) {
+        return terrainCache.combineAsync(ThreadPool.EXECUTOR, Seeds.get(state), chunkAccess, (chunk, terrainData) -> {
             ChunkUtil.fillChunk(getSeaLevel(), chunk, terrainData, ChunkUtil.FILLER, localResource.get());
             ChunkUtil.primeHeightmaps(getSeaLevel(), chunk, terrainData, ChunkUtil.FILLER);
             ChunkUtil.buildStructureTerrain(chunk, terrainData, structureManager);
@@ -241,7 +231,7 @@ public class Generator extends ChunkGenerator implements IGenerator {
 
     @Override
     public void addDebugScreenInfo(List<String> lines, RandomState state, BlockPos pos) {
-        int seed = Seeds.get(state.legacyLevelSeed());
+        int seed = Seeds.get(state);
 
         var sample = biomeSource.getBiomeSampler().getSample();
         terrainCache.sample(seed, pos.getX(), pos.getZ(), sample);

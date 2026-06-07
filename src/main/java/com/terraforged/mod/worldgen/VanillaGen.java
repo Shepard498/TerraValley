@@ -58,7 +58,7 @@ public class VanillaGen {
         this.fluidStatus1 = new Aquifer.FluidStatus(-54, Blocks.LAVA.defaultBlockState());
         this.fluidStatus2 = new Aquifer.FluidStatus(settings.value().seaLevel(), settings.value().defaultFluid());
         this.globalFluidPicker = (x, y, z) -> y < lavaLevel ? fluidStatus1 : fluidStatus2;
-        this.vanillaGenerator = new NoiseBasedChunkGenerator(structures, parameters, biomeSource, settings);
+        this.vanillaGenerator = new NoiseBasedChunkGenerator(biomeSource, settings);
     }
 
     public Holder<NoiseGeneratorSettings> getSettings() {

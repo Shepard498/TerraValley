@@ -32,7 +32,6 @@ import com.terraforged.mod.worldgen.terrain.TerrainData;
 import com.terraforged.mod.worldgen.terrain.TerrainLevels;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.QuartPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.StructureManager;
@@ -43,7 +42,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.PalettedContainer;
-import net.minecraft.world.level.chunk.ProtoChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.function.Supplier;
@@ -68,7 +66,7 @@ public class ChunkUtil {
 
         for(int i = heightAccessor.getMinSection(); i < heightAccessor.getMaxSection(); ++i) {
             var chunkSection = chunk.getSection(chunk.getSectionIndexFromSectionY(i));
-            chunkSection.fillBiomesFromNoise(biomeBuffer, Source.NOOP_CLIMATE_SAMPLER, 0, 0);
+            chunkSection.fillBiomesFromNoise(biomeBuffer, Source.NOOP_CLIMATE_SAMPLER, biomeX, i, biomeZ);
         }
     }
 
@@ -144,9 +142,7 @@ public class ChunkUtil {
 
                     section.setBlockState(x, y & 15, z, state, false);
 
-                    if (state.getLightEmission() != 0 && chunk instanceof ProtoChunk proto) {
-                        proto.addLight(new BlockPos(x, y, z));
-                    }
+                    // TODO 1.21: queue light updates through the modern chunk lighting path.
                 }
             }
         }

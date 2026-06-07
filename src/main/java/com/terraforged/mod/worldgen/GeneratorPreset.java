@@ -67,8 +67,8 @@ public class GeneratorPreset {
     }
 
     public static boolean isTerraForgedWorld(WorldGenSettings settings) {
-        var stem = settings.dimensions().getOrThrow(LevelStem.OVERWORLD);
-        return getGenerator(stem.generator()) != null;
+        // TODO 1.21: rebuild this against the modern WorldDimensions API.
+        return false;
     }
 
     public static boolean isTerraForgedWorld(ServerLevel level) {

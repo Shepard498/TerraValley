@@ -1,0 +1,79 @@
+{
+  "weight": 2,
+  "noise": {
+    "type": "Clamp",
+    "max": {
+      "type": "Const",
+      "value": 1
+    },
+    "min": {
+      "type": "Const",
+      "value": 0
+    },
+    "source": {
+      "type": "Bias",
+      "bias": {
+        "type": "Const",
+        "value": 0.02
+      },
+      "source": {
+        "type": "Add",
+        "modules": [
+          {
+            "type": "Scale",
+            "scale": {
+              "type": "Const",
+              "value": 0.5
+            },
+            "source": {
+              "type": "Terrace",
+              "blend_range": 0.2,
+              "steps": 4,
+              "cliff": {
+                "type": "Const",
+                "value": 0.75
+              },
+              "ramp": {
+                "type": "Const",
+                "value": 0.45
+              },
+              "ramp_height": {
+                "type": "Const",
+                "value": 0.2
+              },
+              "source": {
+                "interpolation": "CURVE3",
+                "type": "Simplex",
+                "frequency": 0.002,
+                "gain": 0.5,
+                "lacunarity": 2,
+                "octaves": 4,
+                "seed": 306606
+              }
+            }
+          },
+          {
+            "type": "Scale",
+            "scale": {
+              "type": "Const",
+              "value": 0.05
+            },
+            "source": {
+              "interpolation": "CURVE3",
+              "type": "Simplex",
+              "frequency": 0.011,
+              "gain": 0.5,
+              "lacunarity": 2,
+              "octaves": 2,
+              "seed": 340029
+            }
+          }
+        ]
+      }
+    }
+  },
+  "type": {
+    "name": "plateau",
+    "parent": "hills"
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "weight": 1.25,
+  "noise": {
+    "type": "Warp",
+    "domain": {
+      "type": "DomainWarp",
+      "distance": {
+        "type": "Const",
+        "value": 55.2
+      },
+      "x": {
+        "type": "Map",
+        "max": {
+          "type": "Const",
+          "value": 0.5
+        },
+        "min": {
+          "type": "Const",
+          "value": -0.5
+        },
+        "source": {
+          "interpolation": "CURVE3",
+          "type": "Simplex",
+          "frequency": 0.018,
+          "gain": 0.5,
+          "lacunarity": 2,
+          "octaves": 3,
+          "seed": 439961
+        }
+      },
+      "y": {
+        "type": "Map",
+        "max": {
+          "type": "Const",
+          "value": 0.5
+        },
+        "min": {
+          "type": "Const",
+          "value": -0.5
+        },
+        "source": {
+          "interpolation": "CURVE3",
+          "type": "Simplex",
+          "frequency": 0.018,
+          "gain": 0.5,
+          "lacunarity": 2,
+          "octaves": 3,
+          "seed": 439962
+        }
+      }
+    },
+    "source": {
+      "type": "Max",
+      "modules": [
+        {
+          "type": "Scale",
+          "scale": {
+            "type": "Const",
+            "value": 0.74
+          },
+          "source": {
+            "type": "Pow",
+            "power": {
+              "type": "Const",
+              "value": 1.35
+            },
+            "source": {
+              "interpolation": "CURVE3",
+              "type": "SimplexRidge",
+              "frequency": 0.002,
+              "gain": 0.55,
+              "lacunarity": 2.5,
+              "octaves": 5,
+              "seed": 416001
+            }
+          }
+        },
+        {
+          "type": "Scale",
+          "scale": {
+            "type": "Const",
+            "value": 0.259
+          },
+          "source": {
+            "interpolation": "CURVE3",
+            "type": "Simplex",
+            "frequency": 0.004,
+            "gain": 0.5,
+            "lacunarity": 2,
+            "octaves": 4,
+            "seed": 360975
+          }
+        }
+      ]
+    }
+  },
+  "type": {
+    "name": "mountains",
+    "parent": "hills"
+  }
+}

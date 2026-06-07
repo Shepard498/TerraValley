@@ -1,0 +1,78 @@
+{
+  "weight": 2.5,
+  "noise": {
+    "type": "Clamp",
+    "max": {
+      "type": "Const",
+      "value": 1
+    },
+    "min": {
+      "type": "Const",
+      "value": 0
+    },
+    "source": {
+      "type": "Bias",
+      "bias": {
+        "type": "Const",
+        "value": 0.02
+      },
+      "source": {
+        "type": "Max",
+        "modules": [
+          {
+            "type": "Add",
+            "modules": [
+              {
+                "type": "Scale",
+                "scale": {
+                  "type": "Const",
+                  "value": 0.12
+                },
+                "source": {
+                  "interpolation": "CURVE3",
+                  "type": "Simplex",
+                  "frequency": 0.002,
+                  "gain": 0.5,
+                  "lacunarity": 2,
+                  "octaves": 3,
+                  "seed": 494685
+                }
+              },
+              {
+                "type": "Scale",
+                "scale": {
+                  "type": "Const",
+                  "value": 0.014
+                },
+                "source": {
+                  "interpolation": "CURVE3",
+                  "type": "Simplex",
+                  "frequency": 0.009,
+                  "gain": 0.5,
+                  "lacunarity": 2,
+                  "octaves": 2,
+                  "seed": 352526
+                }
+              }
+            ]
+          },
+          {
+            "type": "Scale",
+            "scale": {
+              "type": "Const",
+              "value": 0.05
+            },
+            "source": {
+              "type": "Const",
+              "value": 0
+            }
+          }
+        ]
+      }
+    }
+  },
+  "type": {
+    "name": "flats",
+    "parent": "none"
+  }
+}

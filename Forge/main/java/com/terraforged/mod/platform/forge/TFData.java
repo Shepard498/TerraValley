@@ -27,7 +27,6 @@ package com.terraforged.mod.platform.forge;
 import com.terraforged.mod.CommonAPI;
 import com.terraforged.mod.TerraForged;
 import com.terraforged.mod.data.gen.TerraForgedDataProvider;
-import com.terraforged.mod.lifecycle.CommonSetup;
 import com.terraforged.mod.lifecycle.DataGenSetup;
 import com.terraforged.mod.lifecycle.Stage;
 import net.minecraft.core.registries.Registries;
@@ -59,10 +58,8 @@ public class TFData extends Stage {
     }
 
     void onGenerateData(GatherDataEvent event) {
-        CommonSetup.STAGE.run();
-
         var generator = event.getGenerator().getVanillaPack(event.includeServer());
 
-        generator.addProvider(output -> new TerraForgedDataProvider(output.getOutputFolder().resolve("resources/default")));
+        generator.addProvider(output -> new TerraForgedDataProvider(output.getOutputFolder().resolve("default")));
     }
 }
