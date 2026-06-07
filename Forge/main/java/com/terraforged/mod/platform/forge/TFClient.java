@@ -26,15 +26,21 @@ package com.terraforged.mod.platform.forge;
 
 import com.terraforged.mod.lifecycle.ClientSetup;
 import com.terraforged.mod.lifecycle.Stage;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 public class TFClient extends Stage {
     public static final TFClient STAGE = new TFClient();
+    private IEventBus eventBus;
+
+    public boolean run(IEventBus eventBus) {
+        this.eventBus = eventBus;
+        return run();
+    }
 
     @Override
     protected void doInit() {
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientInit);
+        eventBus.addListener(this::onClientInit);
     }
 
     void onClientInit(FMLClientSetupEvent event) {

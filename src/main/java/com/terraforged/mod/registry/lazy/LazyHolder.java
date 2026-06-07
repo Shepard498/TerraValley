@@ -26,6 +26,7 @@ package com.terraforged.mod.registry.lazy;
 
 import com.mojang.datafixers.util.Either;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderOwner;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -49,7 +50,7 @@ public record LazyHolder<T>(T value, Supplier<ResourceKey<T>> key) implements Ho
 
     @Override
     public boolean is(ResourceKey<T> key) {
-        return key == this.key.get();
+        return key.equals(this.key.get());
     }
 
     @Override
@@ -60,6 +61,11 @@ public record LazyHolder<T>(T value, Supplier<ResourceKey<T>> key) implements Ho
     @Override
     public boolean is(TagKey<T> tag) {
         return false;
+    }
+
+    @Override
+    public boolean is(Holder<T> holder) {
+        return holder.unwrapKey().map(this::is).orElseGet(() -> holder.value() == value);
     }
 
     @Override
@@ -83,6 +89,10 @@ public record LazyHolder<T>(T value, Supplier<ResourceKey<T>> key) implements Ho
     }
 
     @Override
+    public boolean canSerializeIn(HolderOwner<T> owner) {
+        return true;
+    }
+
     public boolean isValidInRegistry(Registry<T> registry) {
         return registry.containsKey(key.get());
     }

@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BiomeTags;
@@ -63,7 +64,7 @@ public class BiomeUtil {
     }
 
     public static List<Holder<Biome>> getOverworldBiomes(RegistryAccess access) {
-        return getOverworldBiomes(access.registryOrThrow(Registry.BIOME_REGISTRY));
+        return getOverworldBiomes(access.registryOrThrow(Registries.BIOME));
     }
 
     public static List<Holder<Biome>> getOverworldBiomes(Registry<Biome> biomes) {
@@ -95,18 +96,18 @@ public class BiomeUtil {
     }
 
     public static BiomeType getByRain(Biome biome, BiomeType frozen, BiomeType wetter, BiomeType dryer) {
-        if (biome.getPrecipitation() == Biome.Precipitation.SNOW) return frozen;
+        if (biome.getBaseTemperature() < 0.15F) return frozen;
 
-        return biome.getDownfall() >= 0.8 ? wetter : dryer;
+        return biome.hasPrecipitation() ? wetter : dryer;
     }
 
     public static BiomeType getByTemp(Biome biome, BiomeType colder, BiomeType warmer) {
-        return biome.getPrecipitation() == Biome.Precipitation.SNOW ? colder : warmer;
+        return biome.getBaseTemperature() < 0.15F ? colder : warmer;
     }
 
     public static BiomeType getByTemp(Biome biome, BiomeType cold, BiomeType temperate, BiomeType hot) {
-        if (biome.getPrecipitation() == Biome.Precipitation.SNOW) return cold;
-        if (biome.getPrecipitation() == Biome.Precipitation.NONE || biome.getBaseTemperature() > 1.0) return hot;
+        if (biome.getBaseTemperature() < 0.15F) return cold;
+        if (!biome.hasPrecipitation() || biome.getBaseTemperature() > 1.0) return hot;
         return temperate;
     }
 

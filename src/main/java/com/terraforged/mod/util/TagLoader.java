@@ -34,8 +34,8 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagManager;
 import net.minecraft.util.profiling.InactiveProfiler;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.resource.ResourcePackLoader;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.resource.ResourcePackLoader;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -80,7 +80,7 @@ public class TagLoader {
     }
 
     private static <T> void bind(TagManager.LoadResult<T> result, RegistryAccess access) {
-        var registry = access.ownedRegistry(result.key());
+        var registry = access.registry(result.key());
 
         if (registry.isEmpty()) return;
 

@@ -48,7 +48,7 @@ public record SuperCodec<V>(Class<V> type, Supplier<Void> validator) implements 
             return DataResult.success(Pair.of(result, input));
         } catch (Throwable t) {
             t.printStackTrace();
-            return DataResult.error(t.getMessage());
+            return DataResult.error(t::getMessage);
         }
     }
 
@@ -62,7 +62,7 @@ public record SuperCodec<V>(Class<V> type, Supplier<Void> validator) implements 
             return DataResult.success(output);
         } catch (Throwable t) {
             t.printStackTrace();
-            return DataResult.error(t.getMessage());
+            return DataResult.error(t::getMessage);
         }
     }
 

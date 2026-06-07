@@ -30,20 +30,25 @@ import com.terraforged.mod.data.gen.TerraForgedDataProvider;
 import com.terraforged.mod.lifecycle.CommonSetup;
 import com.terraforged.mod.lifecycle.DataGenSetup;
 import com.terraforged.mod.lifecycle.Stage;
-import net.minecraft.core.Registry;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
-import net.minecraftforge.registries.DeferredRegister;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class TFData extends Stage {
     public static final TFData STAGE = new TFData();
+    private IEventBus eventBus;
+
+    public boolean run(IEventBus eventBus) {
+        this.eventBus = eventBus;
+        return run();
+    }
 
     @Override
     protected void doInit() {
-        var eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(this::onGenerateData);
 
-        var register = DeferredRegister.create(Registry.BIOME_REGISTRY, TerraForged.MODID);
+        var register = DeferredRegister.create(Registries.BIOME, TerraForged.MODID);
         register.register(eventBus);
 
         DataGenSetup.STAGE.run();
@@ -56,8 +61,8 @@ public class TFData extends Stage {
     void onGenerateData(GatherDataEvent event) {
         CommonSetup.STAGE.run();
 
-        var path = event.getGenerator().getOutputFolder().resolve("resources/default");
+        var generator = event.getGenerator().getVanillaPack(event.includeServer());
 
-        event.getGenerator().addProvider(true, new TerraForgedDataProvider(path));
+        generator.addProvider(output -> new TerraForgedDataProvider(output.getOutputFolder().resolve("resources/default")));
     }
 }

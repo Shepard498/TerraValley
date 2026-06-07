@@ -30,8 +30,8 @@ import com.terraforged.mod.worldgen.biome.BiomeGenerator;
 import com.terraforged.mod.worldgen.biome.Source;
 import com.terraforged.mod.worldgen.noise.NoiseGenerator;
 import com.terraforged.mod.worldgen.terrain.TerrainLevels;
-import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -54,14 +54,14 @@ public class GeneratorPreset {
 
     public static LevelStem getDefault(RegistryAccess registries) {
         var generator = build(TerrainLevels.DEFAULT.get().copy(), registries);
-        var type = registries.ownedRegistryOrThrow(Registry.DIMENSION_TYPE_REGISTRY);
+        var type = registries.registryOrThrow(Registries.DIMENSION_TYPE);
         return new LevelStem(type.getHolderOrThrow(BuiltinDimensionTypes.OVERWORLD), generator);
     }
 
     public static VanillaGen getVanillaGen(BiomeSource biomes, RegistryAccess access) {
-        var structures = access.ownedRegistryOrThrow(Registry.STRUCTURE_SET_REGISTRY);
-        var parameters = access.registryOrThrow(Registry.NOISE_REGISTRY);
-        var settings = access.registryOrThrow(Registry.NOISE_GENERATOR_SETTINGS_REGISTRY)
+        var structures = access.registryOrThrow(Registries.STRUCTURE_SET);
+        var parameters = access.registryOrThrow(Registries.NOISE);
+        var settings = access.registryOrThrow(Registries.NOISE_SETTINGS)
                 .getHolderOrThrow(NoiseGeneratorSettings.OVERWORLD);
         return new VanillaGen(biomes, settings, parameters, structures);
     }

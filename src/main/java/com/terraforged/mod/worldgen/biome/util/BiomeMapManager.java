@@ -34,6 +34,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
@@ -52,8 +53,8 @@ public class BiomeMapManager {
     private final Map<BiomeType, WeightMap<Holder<Biome>>> biomeMap;
 
     public BiomeMapManager(RegistryAccess access) {
-        biomes = access.ownedRegistryOrThrow(Registry.BIOME_REGISTRY);
-        climateTypes = access.ownedRegistryOrThrow(TerraForged.CLIMATES.get());
+        biomes = access.registryOrThrow(Registries.BIOME);
+        climateTypes = access.registryOrThrow(TerraForged.CLIMATES.get());
         overworldBiomes = getOverworldBiomes(biomes, climateTypes);
         biomeMap = buildBiomeMap();
     }
@@ -132,7 +133,7 @@ public class BiomeMapManager {
 
         for (var type : biomeTypes) {
             for (var name : type.getWeights().keySet()) {
-                var key = ResourceKey.create(Registry.BIOME_REGISTRY, name);
+                var key = ResourceKey.create(Registries.BIOME, name);
                 var biome = biomes.getHolderOrThrow(key);
 
                 if (added.add(biome)) {

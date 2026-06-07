@@ -27,11 +27,8 @@ package com.terraforged.mod.data;
 import com.terraforged.mod.TerraForged;
 import com.terraforged.mod.registry.key.EntryKey;
 import com.terraforged.mod.worldgen.biome.biomes.ModBiome;
-import net.minecraft.data.worldgen.placement.CavePlacements;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.level.levelgen.GenerationStep;
 
 import static com.terraforged.mod.TerraForged.BIOMES;
 
@@ -41,11 +38,7 @@ public interface ModBiomes {
 
     static void register() {
         TerraForged.register(BIOMES, "cave", ModBiome.create(Biomes.DRIPSTONE_CAVES, builder -> {
-            var genSettings = new BiomeGenerationSettings.Builder();
-            genSettings.addFeature(GenerationStep.Decoration.LOCAL_MODIFICATIONS, CavePlacements.LARGE_DRIPSTONE);
-            genSettings.addFeature(GenerationStep.Decoration.UNDERGROUND_DECORATION, CavePlacements.POINTED_DRIPSTONE);
-            genSettings.build();
-            builder.generationSettings(genSettings.build());
+            // TODO 1.21: rebuild cave feature settings from bootstrap HolderGetter context.
         }));
 
         TerraForged.register(BIOMES, "oak_forest", ModBiome.create(Biomes.PLAINS, builder -> {

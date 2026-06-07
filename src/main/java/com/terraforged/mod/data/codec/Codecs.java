@@ -32,12 +32,11 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.MapCodec;
 
-import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 public class Codecs {
     public static <A> MapCodec<A> opt(String name, A defaultValue, Codec<A> codec) {
-        return Codec.optionalField(name, codec).xmap(o -> o.orElse(defaultValue), a -> Optional.ofNullable(a));
+        return codec.optionalFieldOf(name, defaultValue);
     }
 
     public static <V> JsonElement encode(V v, Codec<V> codec) {

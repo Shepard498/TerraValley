@@ -31,7 +31,6 @@ import com.terraforged.mod.worldgen.biome.util.BiomeUtil;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
@@ -47,10 +46,8 @@ public interface ModClimates {
     float NORMAL = 5F;
 
     static void register() {
-        var registry = BuiltinRegistries.BIOME;
-        var biomes = BiomeUtil.getOverworldBiomes(registry);
         for (var type : BiomeType.values()) {
-            TerraForged.register(CLIMATES, type.name().toLowerCase(Locale.ROOT), Factory.create(type, biomes, registry));
+            TerraForged.register(CLIMATES, type.name().toLowerCase(Locale.ROOT), Factory.create(type, List.of(), null));
         }
     }
 

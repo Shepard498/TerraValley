@@ -45,7 +45,6 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.contents.LiteralContents;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.Heightmap;
 
@@ -96,10 +95,10 @@ public class TFCommands {
 //        var structures = context.getSource().getLevel().getChunkSource().getGenerator().getSettings();
 //        DataGen.exportStructureConfigs(DataPackExporter.DEFAULT_PACK_DIR, structures, access);
 
-        var result = MutableComponent.create(new LiteralContents("Exported structure settings"))
+        var result = Component.literal("Exported structure settings")
                 .withStyle(s -> s.withColor(ChatFormatting.GREEN));
 
-        context.getSource().sendSuccess(result, false);
+        context.getSource().sendSuccess(() -> result, false);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -114,7 +113,7 @@ public class TFCommands {
 
         var player = context.getSource().getPlayerOrException();
         var at = player.blockPosition();
-        var state = player.getLevel().getChunkSource().randomState();
+        var state = player.serverLevel().getChunkSource().randomState();
 
         Component result;
         if (terrain == null) {
@@ -129,7 +128,7 @@ public class TFCommands {
             } else {
                 int x = PosUtil.unpackLeft(pos);
                 int z = PosUtil.unpackRight(pos);
-                int y = generator.getFirstFreeHeight(x, z, Heightmap.Types.MOTION_BLOCKING, player.level, state);
+                int y = generator.getFirstFreeHeight(x, z, Heightmap.Types.MOTION_BLOCKING, player.serverLevel(), state);
 
                 result = createTerrainTeleportMessage(at, x, y, z, terrain);
             }
@@ -160,6 +159,6 @@ public class TFCommands {
     }
 
     private static MutableComponent text(String message) {
-        return MutableComponent.create(new LiteralContents(message));
+        return Component.literal(message);
     }
 }

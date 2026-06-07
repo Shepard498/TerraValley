@@ -29,31 +29,31 @@ import com.terraforged.mod.Environment;
 import com.terraforged.mod.TerraForged;
 import com.terraforged.mod.command.TFCommands;
 import com.terraforged.mod.lifecycle.CommonSetup;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLLoader;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.nio.file.Path;
 
 @Mod(TerraForged.MODID)
 public class TFMain extends TerraForged implements CommonAPI {
-    public TFMain() {
+    public TFMain(IEventBus modEventBus) {
         super(TFMain::getRootPath);
 
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onInit);
+        modEventBus.addListener(this::onInit);
 
-        MinecraftForge.EVENT_BUS.addListener(this::onRegisterCommands);
+        NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
 
         if (Environment.DATA_GEN) {
-            TFData.STAGE.run();
+            TFData.STAGE.run(modEventBus);
         }
 
         if (FMLLoader.getDist().isClient()) {
-            TFClient.STAGE.run();
+            TFClient.STAGE.run(modEventBus);
         }
     }
 

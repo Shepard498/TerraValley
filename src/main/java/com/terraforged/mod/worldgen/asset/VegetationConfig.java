@@ -30,7 +30,7 @@ import com.terraforged.mod.registry.lazy.LazyTag;
 import com.terraforged.mod.util.seed.ContextSeedable;
 import com.terraforged.mod.worldgen.biome.viability.Viability;
 import com.terraforged.mod.worldgen.biome.viability.ViabilityCodec;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 
@@ -41,7 +41,7 @@ public class VegetationConfig implements ContextSeedable<VegetationConfig> {
             Codec.FLOAT.optionalFieldOf("frequency", 1F).forGetter(VegetationConfig::frequency),
             Codec.FLOAT.optionalFieldOf("jitter", 1F).forGetter(VegetationConfig::jitter),
             Codec.FLOAT.optionalFieldOf("density", 1F).forGetter(VegetationConfig::density),
-            TagKey.hashedCodec(Registry.BIOME_REGISTRY).fieldOf("biomes").forGetter(VegetationConfig::biomes),
+            TagKey.hashedCodec(Registries.BIOME).fieldOf("biomes").forGetter(VegetationConfig::biomes),
             ViabilityCodec.CODEC.fieldOf("viability").forGetter(VegetationConfig::viability)
     ).apply(instance, VegetationConfig::new));
 

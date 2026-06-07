@@ -19,12 +19,13 @@ What works:
 - `./gradlew tasks` configures successfully under JDK 21.
 - NeoForge run tasks are available: `runClient`, `runServer`, and `runData`.
 
-Current compile blocker:
+Resolved blocker:
 
 - The archived TerraForged branch depended on `com.terraforged:Engine:0.3.0` from `https://io.terraforged.com/maven/`.
 - That host no longer resolves, so the old dependency cannot be fetched.
 - The old `.gitmodules` mentions `https://github.com/TerraForged/Engine.git`, but the current `0.3.x` tree does not contain a registered `Engine` submodule path.
 - Historical TerraForged commit `704a1ad9e51d4007789b18c2bc64eed5628d794f` referenced Engine submodule commit `df2e6e0be9d31b8bc80288a5002c0d0683c0839a`, but the public `TerraForged/Engine` repository is currently unavailable.
+- An initial source compatibility layer now exists under `src/main/java/com/terraforged/engine` to replace the old Engine dependency surface used by this codebase. It is intentionally incomplete and should be treated as a porting bridge, not a recovered full Engine implementation.
 
 Recovered local dependencies:
 
@@ -34,11 +35,25 @@ Recovered local dependencies:
 
 Observed first compile categories after removing the dead Maven dependency:
 
-- Missing old TerraForged libraries:
-  - `com.terraforged.engine.*`
-- Minecraft 1.21.1 API changes, for example `net.minecraft.network.chat.contents.LiteralContents`.
-- Forge-to-NeoForge package migration still needed in `Forge/main/java`.
+- Minecraft 1.21.1 API changes, including registry keys, `ResourceLocation` factories, `DataResult.error` suppliers, `Holder` methods, and command feedback suppliers.
+- Forge-to-NeoForge package migration in `Forge/main/java`.
 - Mixin targets and refmap generation still need to be reviewed after source compilation is restored.
+
+Checkpoint progress:
+
+- `com.terraforged.engine.*` compile imports have been replaced by local compatibility sources.
+- `Forge/main/java` platform entrypoint imports have been moved to NeoForge/FML packages and now use the injected mod event bus.
+- Datagen provider return type has been updated to the 1.21 `CompletableFuture<?>` contract.
+- Several low-risk 1.21 API substitutions are applied: `ResourceLocation.parse/fromNamespaceAndPath`, `Registries.*`, `BuiltInRegistries.*` codec registration, supplier-based `sendSuccess`, and `RegistrationInfo.BUILT_IN`.
+- Custom biome bootstrap and climate defaults currently contain compile-first placeholders. They need a proper 1.21 dynamic-registry/bootstrap rewrite.
+
+Current compile blockers:
+
+- Old registry/datapack hooks depend on removed types such as `RegistryAccess.Writable`, `RegistryLoader`, and `RegistryResourceAccess`.
+- Client world-creation mixins target removed/renamed screens such as `WorldGenSettingsComponent`.
+- `ChunkGenerator` and `BiomeSource` contracts changed to `MapCodec` and new async generation methods.
+- Seed access via `RandomState.legacyLevelSeed()` is gone and needs a new seed source.
+- Tag/resource pack loading needs updating for the 1.21 pack APIs.
 
 Possible next paths:
 

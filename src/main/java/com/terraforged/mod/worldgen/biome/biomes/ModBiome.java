@@ -25,10 +25,12 @@
 package com.terraforged.mod.worldgen.biome.biomes;
 
 import com.terraforged.mod.TerraForged;
-import net.minecraft.core.Registry;
-import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeGenerationSettings;
+import net.minecraft.world.level.biome.BiomeSpecialEffects;
+import net.minecraft.world.level.biome.MobSpawnSettings;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -39,7 +41,7 @@ public record ModBiome(ResourceKey<Biome> key, Supplier<Biome> factory) {
     }
 
     public static ModBiome of(String name, ResourceKey<Biome> parent, Consumer<Biome.BiomeBuilder> modifier) {
-        var key = ResourceKey.create(Registry.BIOME_REGISTRY, TerraForged.location(name));
+        var key = ResourceKey.create(Registries.BIOME, TerraForged.location(name));
         var factory = copyFactory(parent, modifier);
         return new ModBiome(key, factory);
     }
@@ -53,16 +55,19 @@ public record ModBiome(ResourceKey<Biome> key, Supplier<Biome> factory) {
     }
 
     private static Biome.BiomeBuilder builderOf(ResourceKey<Biome> parent) {
-        var biome = BuiltinRegistries.BIOME.getOrThrow(parent);
-        var holder = BuiltinRegistries.BIOME.getHolderOrThrow(parent);
+        // TODO 1.21: copy the parent biome from dynamic registry bootstrap context.
         var builder = new Biome.BiomeBuilder();
-        builder.downfall(biome.getDownfall());
-//        builder.biomeCategory(Biome.getBiomeCategory(holder));
-        builder.temperature(biome.getBaseTemperature());
-        builder.mobSpawnSettings(biome.getMobSettings());
-        builder.precipitation(biome.getPrecipitation());
-        builder.specialEffects(biome.getSpecialEffects());
-        builder.generationSettings(biome.getGenerationSettings());
+        builder.downfall(0.4F);
+        builder.temperature(0.8F);
+        builder.hasPrecipitation(true);
+        builder.mobSpawnSettings(MobSpawnSettings.EMPTY);
+        builder.specialEffects(new BiomeSpecialEffects.Builder()
+                .waterColor(4159204)
+                .waterFogColor(329011)
+                .fogColor(12638463)
+                .skyColor(7907327)
+                .build());
+        builder.generationSettings(BiomeGenerationSettings.EMPTY);
         return builder;
     }
 

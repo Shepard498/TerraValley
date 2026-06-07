@@ -35,7 +35,7 @@ public class Arg {
     public static RequiredArgumentBuilder<CommandSourceStack, String> terrainType() {
         return Commands.argument("terrain", StringArgumentType.string()).suggests((context, builder) -> {
             var registries = context.getSource().getServer().registryAccess();
-            var terrainTypes = registries.ownedRegistry(TerraForged.TERRAIN_TYPES.get());
+            var terrainTypes = registries.registry(TerraForged.TERRAIN_TYPES.get());
             if (terrainTypes.isEmpty()) {
                 TerrainType.forEach(type -> builder.suggest(type.getName()));
             } else {

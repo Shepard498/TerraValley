@@ -28,8 +28,8 @@ import com.google.common.collect.ImmutableSet;
 import com.terraforged.mod.util.ReflectionUtil;
 import com.terraforged.mod.worldgen.asset.VegetationConfig;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
@@ -103,7 +103,7 @@ public class VegetationFeatures {
         var features = biome.getGenerationSettings().features();
         if (features.size() > STAGE) {
             var vegetation = features.get(STAGE);
-            var featureRegistry = access.registryOrThrow(Registry.PLACED_FEATURE_REGISTRY);
+            var featureRegistry = access.registryOrThrow(Registries.PLACED_FEATURE);
 
             for (var feature : vegetation) {
                 var featureKey = featureRegistry.getKey(feature.value());

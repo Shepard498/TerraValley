@@ -29,6 +29,7 @@ import com.mojang.serialization.Lifecycle;
 import com.terraforged.mod.hooks.RegistryAccessUtil;
 import com.terraforged.mod.registry.key.RegistryKey;
 import net.minecraft.core.MappedRegistry;
+import net.minecraft.core.RegistrationInfo;
 import net.minecraft.resources.ResourceKey;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +46,7 @@ public class DataRegistry<T> implements Iterable<Map.Entry<ResourceKey<T>, T>> {
     public DataRegistry(RegistryKey<T> key, Codec<T> codec) {
         this.key = key;
         this.codec = codec;
-        this.registry = new MappedRegistry<>(key.get(), Lifecycle.stable(), null);
+        this.registry = new MappedRegistry<>(key.get(), Lifecycle.stable());
     }
 
     public Codec<T> codec() {
@@ -57,7 +58,7 @@ public class DataRegistry<T> implements Iterable<Map.Entry<ResourceKey<T>, T>> {
     }
 
     public void register(ResourceKey<T> key, T value) {
-        registry.register(key, value, Lifecycle.stable());
+        registry.register(key, value, RegistrationInfo.BUILT_IN);
     }
 
     @NotNull

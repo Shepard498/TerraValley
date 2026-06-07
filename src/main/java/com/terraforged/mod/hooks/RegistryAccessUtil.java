@@ -29,6 +29,7 @@ import com.terraforged.mod.Environment;
 import com.terraforged.mod.TerraForged;
 import com.terraforged.mod.util.ReflectionUtil;
 import net.minecraft.core.MappedRegistry;
+import net.minecraft.core.RegistrationInfo;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.WritableRegistry;
@@ -63,19 +64,19 @@ public class RegistryAccessUtil {
     }
 
     public static <T> MappedRegistry<T> copy(Registry<T> input) {
-        var copy = new MappedRegistry<>(input.key(), input.lifecycle(), null);
+        var copy = new MappedRegistry<>(input.key(), input.registryLifecycle());
         for (var value : input) {
             var key = input.getResourceKey(value).orElseThrow();
-            var lifecycle = input.lifecycle(value);
-            copy.register(key, value, lifecycle);
+            var registrationInfo = input.registrationInfo(key).orElse(RegistrationInfo.BUILT_IN);
+            copy.register(key, value, registrationInfo);
         }
         return copy;
     }
 
-    public static <T> void copy(Registry<T> registry, RegistryAccess.Writable holder) {
-        var dest = (WritableRegistry<T>) holder.ownedRegistryOrThrow(registry.key());
+    public static <T> void copy(Registry<T> registry, WritableRegistry<T> dest) {
         for (var entry : registry.entrySet()) {
-            dest.register(entry.getKey(), entry.getValue(), registry.lifecycle(entry.getValue()));
+            var registrationInfo = registry.registrationInfo(entry.getKey()).orElse(RegistrationInfo.BUILT_IN);
+            dest.register(entry.getKey(), entry.getValue(), registrationInfo);
         }
     }
 

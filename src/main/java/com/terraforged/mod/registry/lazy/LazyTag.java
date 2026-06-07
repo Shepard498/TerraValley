@@ -26,6 +26,7 @@ package com.terraforged.mod.registry.lazy;
 
 import com.terraforged.mod.TerraForged;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -47,7 +48,7 @@ public class LazyTag<T> extends LazyValue<TagKey<T>> {
     }
 
     public static LazyTag<Biome> biome(String name) {
-        return new LazyTag<>(() -> Registry.BIOME_REGISTRY, TerraForged.location(name));
+        return new LazyTag<>(() -> Registries.BIOME, TerraForged.location(name));
     }
 
     public static <T> LazyTag<T> of(TagKey<T> tagKey) {

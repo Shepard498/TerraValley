@@ -39,7 +39,7 @@ public interface WorldGenCodec<V> extends Codec<V> {
     @Override
     default <T> DataResult<Pair<V, T>> decode(DynamicOps<T> ops, T input) {
         var access = RegistryAccessUtil.getRegistryAccess(ops);
-        if (access.isEmpty()) return DataResult.error("Invalid ops");
+        if (access.isEmpty()) return DataResult.error(() -> "Invalid ops");
 
         var result = decode(ops, input, access.get());
         return DataResult.success(Pair.of(result, input));
@@ -59,7 +59,7 @@ public interface WorldGenCodec<V> extends Codec<V> {
         @Override
         public <T> DataResult<RegistryAccess> decode(DynamicOps<T> ops, MapLike<T> input) {
             var access = RegistryAccessUtil.getRegistryAccess(ops);
-            if (access.isEmpty()) return DataResult.error("Invalid ops");
+            if (access.isEmpty()) return DataResult.error(() -> "Invalid ops");
             return DataResult.success(access.get());
         }
 

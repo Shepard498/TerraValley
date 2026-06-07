@@ -46,7 +46,7 @@ public record SpecCodec<V>(DataSpec<V> spec) implements Codec<V> {
             return DataResult.success(Pair.of(result, input));
         } catch (Throwable t) {
             t.printStackTrace();
-            return DataResult.error(t.getMessage());
+            return DataResult.error(t::getMessage);
         }
     }
 
@@ -59,7 +59,7 @@ public record SpecCodec<V>(DataSpec<V> spec) implements Codec<V> {
             return DataResult.success(output);
         } catch (Throwable t) {
             t.printStackTrace();
-            return DataResult.error(t.getMessage());
+            return DataResult.error(t::getMessage);
         }
     }
 

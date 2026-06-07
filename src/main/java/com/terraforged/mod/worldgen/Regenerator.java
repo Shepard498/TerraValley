@@ -28,8 +28,7 @@ import com.google.common.base.Suppliers;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.contents.LiteralContents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -52,7 +51,7 @@ public class Regenerator {
     }
 
     private static void log(CommandSourceStack source, String message, ChatFormatting... formatting) {
-        source.sendSuccess(MutableComponent.create(new LiteralContents(message)).withStyle(formatting), true);
+        source.sendSuccess(() -> Component.literal(message).withStyle(formatting), true);
     }
 
     private static void deleteChunks(ChunkPos pos, int radius, ServerLevel level) {

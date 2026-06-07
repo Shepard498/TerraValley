@@ -29,14 +29,22 @@ import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public record TerraForgedDataProvider(Path dir) implements DataProvider {
     @Override
-    public void run(CachedOutput cachedOutput) {
-        DataGen.export(dir, cachedOutput).join();
+    public CompletableFuture<?> run(CachedOutput cachedOutput) {
+        return DataGen.export(dir, cachedOutput).thenRun(TerraForgedDataProvider::scheduleShutdown);
+    }
 
+    @Override
+    public String getName() {
+        return "TerraForged Builtins";
+    }
+
+    private static void scheduleShutdown() {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -45,10 +53,5 @@ public record TerraForgedDataProvider(Path dir) implements DataProvider {
                 System.exit(0);
             }
         }, 1_000L);
-    }
-
-    @Override
-    public String getName() {
-        return "TerraForged Builtins";
     }
 }

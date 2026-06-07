@@ -54,14 +54,14 @@ public class RegistryKey<T> extends LazyValue<ResourceKey<Registry<T>>> {
         if (access == null) {
             return new LazyHolder<>(defaultSupplier.get(), key);
         }
-        return access.ownedRegistryOrThrow(get()).getHolderOrThrow(key.get());
+        return access.registryOrThrow(get()).getHolderOrThrow(key.get());
     }
 
     public T[] entries(RegistryAccess access, IntFunction<T[]> arrayFunc) {
         if (access == null) {
             return toSortedArray(CommonAPI.get().getRegistryManager().getRegistry(this).stream(), arrayFunc);
         }
-        return toSortedArray(access.ownedRegistryOrThrow(get()).entrySet().stream(), arrayFunc);
+        return toSortedArray(access.registryOrThrow(get()).entrySet().stream(), arrayFunc);
     }
 
     @Override

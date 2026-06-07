@@ -26,6 +26,7 @@ package com.terraforged.mod.worldgen.biome.decorator;
 
 import com.terraforged.mod.worldgen.Generator;
 import net.minecraft.core.*;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
@@ -105,7 +106,7 @@ public class VanillaDecorator {
 
     public static Map<GenerationStep.Decoration, List<Holder<Structure>>> buildStructureMap(RegistryAccess access) {
         final var map = new EnumMap<GenerationStep.Decoration, List<Holder<Structure>>>(GenerationStep.Decoration.class);
-        final var registry = access.registryOrThrow(Registry.STRUCTURE_REGISTRY);
+        final var registry = access.registryOrThrow(Registries.STRUCTURE);
 
         for (var entry : registry.entrySet()) {
             var key = entry.getKey();

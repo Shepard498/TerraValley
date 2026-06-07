@@ -40,6 +40,8 @@ import com.terraforged.mod.worldgen.GeneratorPreset;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
@@ -68,7 +70,7 @@ public class DataGen {
     protected CompletableFuture<?> doExport(Path dir) {
         FileUtil.delete(dir);
 
-        var registries = RegistryAccess.builtinCopy();
+        var registries = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
         var writeOps = RegistryOps.create(JsonOps.INSTANCE, registries);
 
         TagLoader.bindTags(registries);
@@ -85,7 +87,7 @@ public class DataGen {
     }
 
     private void genPreset(Path dir, RegistryAccess registries, RegistryOps<JsonElement> writeOps) {
-        var normal = registries.ownedRegistryOrThrow(Registry.WORLD_PRESET_REGISTRY)
+        var normal = registries.registryOrThrow(Registries.WORLD_PRESET)
                 .getOrThrow(WorldPresets.NORMAL);
 
         var json = Codecs.encode(normal, WorldPreset.DIRECT_CODEC, writeOps).getAsJsonObject();
@@ -95,11 +97,11 @@ public class DataGen {
         var dimensions = json.getAsJsonObject("dimensions");
         dimensions.add(LevelStem.OVERWORLD.location().toString(), dimensionJson);
 
-        export(dir, Registry.WORLD_PRESET_REGISTRY, TerraForged.WORLD_PRESET, json);
+        export(dir, Registries.WORLD_PRESET, TerraForged.WORLD_PRESET, json);
     }
 
     private void genDimensionType(Path dir, RegistryAccess registries, RegistryOps<JsonElement> writeOps) {
-        var registry = registries.ownedRegistryOrThrow(Registry.DIMENSION_TYPE_REGISTRY);
+        var registry = registries.registryOrThrow(Registries.DIMENSION_TYPE);
         var overworld = registry.getOrThrow(BuiltinDimensionTypes.OVERWORLD);
 
         var json = Codecs.encode(overworld, DimensionType.DIRECT_CODEC, writeOps).getAsJsonObject();
@@ -107,7 +109,7 @@ public class DataGen {
         json.addProperty("logical_height", 1024);
         json.addProperty("effects", TerraForged.DIMENSION_EFFECTS.toString());
 
-        export(dir, Registry.DIMENSION_TYPE_REGISTRY, BuiltinDimensionTypes.OVERWORLD.location(), json);
+        export(dir, Registries.DIMENSION_TYPE, BuiltinDimensionTypes.OVERWORLD.location(), json);
     }
 
     private void genBuiltin(Path dir, RegistryAccess registries, RegistryOps<JsonElement> writeOps) {
@@ -121,7 +123,7 @@ public class DataGen {
     }
 
     private <T> void export(Path dir, DataRegistry<T> builtin, RegistryAccess access, DynamicOps<JsonElement> ops) {
-        var registry = access.ownedRegistryOrThrow(builtin.key().get());
+        var registry = access.registryOrThrow(builtin.key().get());
 
         TerraForged.LOG.info("Exporting registry: {}", registry.key());
         for (var entry : builtin) {
