@@ -33,10 +33,17 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.WritableRegistry;
 import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceKey;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 public class RegistryAccessUtil {
+    private static final ConcurrentHashMap<Class<?>, Optional<Field>> REGISTRY_FIELD_CACHE = new ConcurrentHashMap<>();
+
     public static Optional<RegistryAccess> getRegistryAccess(DynamicOps<?> ops) {
         if (!(ops instanceof RegistryOps<?>)) {
             return Optional.empty();
@@ -51,7 +58,55 @@ public class RegistryAccessUtil {
             return Optional.of(access);
         }
 
+        return Optional.of(new LookupBackedAccess(ops.lookupProvider));
+    }
+
+    private static Optional<Registry<?>> findRegistry(Object value) {
+        if (value instanceof Registry<?> registry) {
+            return Optional.of(registry);
+        }
+
+        return REGISTRY_FIELD_CACHE.computeIfAbsent(value.getClass(), RegistryAccessUtil::findRegistryField)
+                .flatMap(field -> readRegistryField(field, value));
+    }
+
+    private static Optional<Field> findRegistryField(Class<?> type) {
+        while (type != null) {
+            var field = Arrays.stream(type.getDeclaredFields())
+                    .filter(f -> Registry.class.isAssignableFrom(f.getType()))
+                    .findFirst();
+
+            if (field.isPresent()) {
+                field.get().setAccessible(true);
+                return field;
+            }
+
+            type = type.getSuperclass();
+        }
+
         return Optional.empty();
+    }
+
+    private static Optional<Registry<?>> readRegistryField(Field field, Object value) {
+        try {
+            return Optional.ofNullable((Registry<?>) field.get(value));
+        } catch (IllegalAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    private record LookupBackedAccess(RegistryOps.RegistryInfoLookup lookup) implements RegistryAccess {
+        @Override
+        public <E> Optional<Registry<E>> registry(ResourceKey<? extends Registry<? extends E>> key) {
+            return lookup.lookup(key)
+                    .flatMap(info -> findRegistry(info.owner()).or(() -> findRegistry(info.getter())))
+                    .map(registry -> (Registry<E>) registry);
+        }
+
+        @Override
+        public Stream<RegistryEntry<?>> registries() {
+            return Stream.empty();
+        }
     }
 
     public static <T> MappedRegistry<T> copy(Registry<T> input) {
