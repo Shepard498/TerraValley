@@ -7,7 +7,11 @@ plugins {
 apply from: file("common.gradle")
 
 sourceSets {
-    main.java { srcDirs += "Forge/main/java" }
+    main.java {
+        srcDirs += "Forge/main/java"
+        srcDirs += "libs/Noise2D/src/main/java"
+        srcDirs += "libs/Cereal/src/main/java"
+    }
     main.resources {
         srcDirs += "Forge/main/resources"
         srcDirs += "generated/resources"
@@ -59,7 +63,6 @@ configurations {
 
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
-    annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
 }
 
 tasks.named("jar", Jar).configure {

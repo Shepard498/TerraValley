@@ -11,6 +11,7 @@ Current baseline:
 - Gradle wrapper: `9.2.1`
 - Java toolchain: `21`
 - NeoGradle userdev: `7.1.36`
+- Mixin annotation processing is temporarily disabled because the old `org.spongepowered:mixin:0.8.5:processor` crashes while parsing modern descriptor selectors under the current toolchain. Runtime mixin/refmap handling still needs a proper NeoForge-compatible pass.
 - Active branch: `neoforge/1.21.1-port`
 
 What works:
@@ -25,14 +26,19 @@ Current compile blocker:
 - The old `.gitmodules` mentions `https://github.com/TerraForged/Engine.git`, but the current `0.3.x` tree does not contain a registered `Engine` submodule path.
 - Historical TerraForged commit `704a1ad9e51d4007789b18c2bc64eed5628d794f` referenced Engine submodule commit `df2e6e0be9d31b8bc80288a5002c0d0683c0839a`, but the public `TerraForged/Engine` repository is currently unavailable.
 
+Recovered local dependencies:
+
+- `libs/Noise2D` is added as a submodule from `https://github.com/TerraForged/Noise2D.git`.
+- `libs/Cereal` is added as a submodule from `https://github.com/TerraForged/Cereal.git`.
+- Their Java sources are compiled directly by the root project to avoid relying on JitPack or the unavailable TerraForged Maven host.
+
 Observed first compile categories after removing the dead Maven dependency:
 
 - Missing old TerraForged libraries:
   - `com.terraforged.engine.*`
-  - `com.terraforged.noise.*`
-  - `com.terraforged.cereal.*`
 - Minecraft 1.21.1 API changes, for example `net.minecraft.network.chat.contents.LiteralContents`.
 - Forge-to-NeoForge package migration still needed in `Forge/main/java`.
+- Mixin targets and refmap generation still need to be reviewed after source compilation is restored.
 
 Possible next paths:
 
