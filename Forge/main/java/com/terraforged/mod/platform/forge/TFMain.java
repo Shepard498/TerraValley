@@ -108,7 +108,8 @@ public class TFMain extends TerraForged implements CommonAPI {
     }
 
     private static <T> void registerDataPackRegistry(DataPackRegistryEvent.NewRegistry event, DataRegistry<T> registry) {
-        event.dataPackRegistry(registry.key().get(), registry.codec());
+        TerraForged.LOG.info("Registering datapack registry: {}", registry.key().get().location());
+        event.dataPackRegistry(registry.key().get(), registry.codec(), registry.codec());
     }
 
     private static Path getRootPath() {
